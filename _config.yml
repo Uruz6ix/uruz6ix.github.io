@@ -3,7 +3,6 @@ plugins:
 - jekyll-remote-theme
 - jekyll-include-cache
 title: Dong Wenyi's Page!!
-description: aka 'dot' and 'uruz'
-header_pages:
-  - Artworks.md
-  - Researchs.md
+minimal_mistakes_skin: "air"
+locale: "en-US"
+logo: "/assets/images/logo.png"

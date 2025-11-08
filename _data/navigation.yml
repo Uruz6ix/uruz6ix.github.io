@@ -1,0 +1,7 @@
+main:
+  - title: Home
+    url: /
+  - title: Artworks
+    url: /artworks
+  - title: Researchs
+    url: /researchs
