@@ -3,6 +3,7 @@ layout: single
 classes: wide
 title: "Artworks"
 permalink: /artworks
+author_profile: true
 gallery2025:
     - url: /assets/Painting2025/erotik2.png
       image_path: "/assets/Painting2025/erotik2.png"
