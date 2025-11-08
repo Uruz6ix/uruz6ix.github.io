@@ -6,4 +6,9 @@ title: Dong Wenyi's Page!!
 minimal_mistakes_skin: "air"
 locale: "en-US"
 logo: "/assets/images/logo.png"
-include: ["_pages"]
+include: ["_page"]
+
+author: 
+  name: Dong Wenyi
+  avatar: "/assets/images/selfie.png"
+  location: Beijing, China
