@@ -8,8 +8,16 @@ locale: "en-US"
 logo: "/assets/images/logo.png"
 include: ["_page"]
 
-Dong Wenyi: 
+author: 
   name : "Dong Wenyi"
   avatar : "/assets/images/selfie.png"
   location : Beijing, China
   bi : "Everything is disgusting, but art and science are everlasting."
+
+defaults:
+  # _posts
+  - scope:
+      path: ""
+      type: posts
+    values:
+      author_profile: true

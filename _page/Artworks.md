@@ -11,5 +11,5 @@ gallery:
 ---
 # Painting
 ## 2025
-{% include gallery id="gallery" caption="Painting (2025)" %}
+{% include gallery id="gallery" %}
 ---
