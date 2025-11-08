@@ -1,3 +1,7 @@
-theme: jekyll-theme-minimal
+theme: jekyll-scholar
 title: Dong Wenyi's Page!!
 description: aka 'dot' and 'uruz'
+header_pages:
+  - Artworks.md
+  - Projects.md
+  - index.md
