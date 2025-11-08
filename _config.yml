@@ -6,3 +6,4 @@ title: Dong Wenyi's Page!!
 minimal_mistakes_skin: "air"
 locale: "en-US"
 logo: "/assets/images/logo.png"
+include: ["_pages"]
