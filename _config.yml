@@ -6,7 +6,7 @@ title: Dong Wenyi's Page!!
 minimal_mistakes_skin: "dirt"
 locale: "en-US"
 logo: "/assets/images/logo.png"
-include: ["_page"]
+include: ["_page","_includes"]
 
 author: 
   name: "Dong Wenyi"
@@ -21,3 +21,7 @@ defaults:
       type: posts
     values:
       author_profile: true
+
+footer:
+  custom_html:
+  links:
