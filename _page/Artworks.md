@@ -11,14 +11,14 @@ gallery2025:
     - url: /assets/Painting2025/useless.png
       image_path: "/assets/Painting2025/useless.png"
 gallery2021:
-    - url: /assets/Painting2021/rerere.png
-      image_path: "/assets/Painting2021/rerere.png"
-    - url: /assets/Painting2021/fly.png
-      image_path: "/assets/Painting2021/fly.png"
-    - url: /assets/Painting2021/heartbeating.png
-      image_path: "/assets/Painting2021/heartbeating.png"
-    - url: /assets/Painting2021/lookingatu01.png
-      image_path: "/assets/Painting2021/lookingatu01.png"
+    - url: /assets/Painting2021/rerere.jpg
+      image_path: "/assets/Painting2021/rerere.jpg"
+    - url: /assets/Painting2021/fly.jpg
+      image_path: "/assets/Painting2021/fly.jpg"
+    - url: /assets/Painting2021/heartbeating.jpg
+      image_path: "/assets/Painting2021/heartbeating.jpg"
+    - url: /assets/Painting2021/lookingatu01.jpg
+      image_path: "/assets/Painting2021/lookingatu01.jpg"
 ---
 # Painting
 ## 2025
