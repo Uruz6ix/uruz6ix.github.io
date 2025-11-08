@@ -1,5 +1,5 @@
 ---
-layout: default
+layout: single
 title: "Home"
 ---
 Hello, I'm Dong Wenyi, a 2nd-year master's student at Beihang University. My research interests mainly focus on advanced manufacturing, metal forming and new material robotics.
