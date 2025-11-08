@@ -9,10 +9,10 @@ logo: "/assets/images/logo.png"
 include: ["_page"]
 
 author: 
-  name : "Dong Wenyi"
-  avatar : "/assets/images/selfie.png"
+  name: "Dong Wenyi"
+  avatar: "/assets/images/selfie.png"
   location : Beijing, China
-  bi : "Everything is disgusting, but art and science are everlasting."
+  bio : "Everything is disgusting, but art and science are everlasting."
 
 defaults:
   # _posts

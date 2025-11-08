@@ -8,8 +8,11 @@ gallery:
       image_path: "/assets/Painting2025/erotik2.png"
     - url: /assets/Painting2025/yourinnocentandmycruel.png
       image_path: "/assets/Painting2025/yourinnocentandmycruel.png"
+    - url: /assets/Painting2025/useless.png
+      image_path: "/assets/Painting2025/useless.png"
+author_profile: false
 ---
 # Painting
 ## 2025
-{% include gallery id="gallery" %}
+{% include gallery id="gallery" caption = " "%}
 ---
