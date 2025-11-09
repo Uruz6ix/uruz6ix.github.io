@@ -1,8 +1,8 @@
 ---
 layout: single
 classes: wide
-title: "Researchs"
-permalink: /researchs
+title: "Researches"
+permalink: /researches
 
 author_profile: true
 ---
