@@ -11,6 +11,8 @@ gallery2025:
       image_path: "/assets/Painting2025/yourinnocentandmycruel.png"
     - url: /assets/Painting2025/useless.png
       image_path: "/assets/Painting2025/useless.png"
+    - url: /assets/Painting2025/Mae.jpg
+      image_path: "/assets/Painting2025/Mae.jpg"
 gallery2021:
     - url: /assets/Painting2021/rerere.jpg
       image_path: "/assets/Painting2021/rerere.jpg"
