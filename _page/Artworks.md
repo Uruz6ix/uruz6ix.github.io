@@ -5,8 +5,8 @@ title: "Artworks"
 permalink: /artworks
 author_profile: true
 galleryMOS:
-    - url: /assets/MOS/MOS1.png
-      image_path: "/assets/MOS/MOS1.png"
+    - url: /assets/MOS/MOS1.jpg
+      image_path: "/assets/MOS/MOS1.jpg"
 gallery2025:
     - url: /assets/Painting2025/erotik2.png
       image_path: "/assets/Painting2025/erotik2.png"
