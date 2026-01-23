@@ -28,6 +28,8 @@ I am also a multimedia artist specializing in painting, music, and experimental 
   * 2022 -- 2024
 
 ### Painting
+* Muridae with Orange Skin
+  * 2026
 * Personal!!
   * 2021 -- present
 * Modern Myths
