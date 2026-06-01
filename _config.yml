@@ -5,7 +5,6 @@ plugins:
 title: Dong Wenyi's Page!!
 minimal_mistakes_skin: "contrast"
 locale: "en-US"
-logo: "/assets/images/logo.png"
 include: ["_page","_includes"]
 
 author: 

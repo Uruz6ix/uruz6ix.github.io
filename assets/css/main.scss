@@ -58,6 +58,26 @@ body.home-visual-bg::after {
   z-index: -1;
 }
 
+body.artwork-visual-bg {
+  background:
+    linear-gradient(90deg, rgba(247, 248, 245, 0.82) 0%, rgba(247, 248, 245, 0.62) 42%, rgba(247, 248, 245, 0.32) 100%),
+    linear-gradient(180deg, rgba(247, 248, 245, 0.24) 0%, rgba(247, 248, 245, 0.72) 100%),
+    url("/assets/Painting2025/erotik2.png") center center / cover fixed no-repeat;
+  min-height: 100vh;
+}
+
+body.artwork-visual-bg::after {
+  background-image:
+    linear-gradient(rgba(17, 19, 21, 0.04) 1px, transparent 1px),
+    linear-gradient(90deg, rgba(17, 19, 21, 0.04) 1px, transparent 1px);
+  background-size: 40px 40px;
+  content: "";
+  inset: 0;
+  pointer-events: none;
+  position: fixed;
+  z-index: -1;
+}
+
 a,
 .page__content a {
   color: var(--uruz-deep);
@@ -74,17 +94,21 @@ a:hover,
 }
 
 .masthead {
-  background: rgba(247, 248, 245, 0.86);
-  border-bottom: 1px solid var(--uruz-line);
+  background: var(--uruz-deep);
+  border-bottom: 1px solid rgba(247, 248, 245, 0.16);
   backdrop-filter: blur(18px);
 }
 
 .greedy-nav {
-  background: transparent;
+  background: var(--uruz-deep);
 }
 
 .greedy-nav a {
-  color: var(--uruz-ink);
+  color: rgba(247, 248, 245, 0.92);
+}
+
+.greedy-nav a:hover {
+  color: #fff;
 }
 
 .greedy-nav .visible-links a::before {
@@ -92,6 +116,7 @@ a:hover,
 }
 
 .site-title {
+  color: #fff;
   font-weight: 800;
 }
 
@@ -107,7 +132,7 @@ a:hover,
 .page__content h2,
 .page__content h3 {
   color: var(--uruz-ink);
-  font-family: "Arial Narrow", "Roboto Condensed", "Segoe UI", ui-sans-serif, system-ui, sans-serif;
+  font-family: Arial, Helvetica, sans-serif;
   font-weight: 800;
 }
 
@@ -226,6 +251,13 @@ a:hover,
       linear-gradient(90deg, rgba(247, 248, 245, 0.82) 0%, rgba(247, 248, 245, 0.52) 100%),
       linear-gradient(180deg, rgba(247, 248, 245, 0.22) 0%, rgba(247, 248, 245, 0.62) 100%),
       url("/assets/MOS/MOS1.jpg") center center / cover no-repeat;
+  }
+
+  body.artwork-visual-bg {
+    background:
+      linear-gradient(90deg, rgba(247, 248, 245, 0.86) 0%, rgba(247, 248, 245, 0.58) 100%),
+      linear-gradient(180deg, rgba(247, 248, 245, 0.24) 0%, rgba(247, 248, 245, 0.72) 100%),
+      url("/assets/Painting2025/erotik2.png") center center / cover no-repeat;
   }
 
   .page__content .gallery {

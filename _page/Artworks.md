@@ -1,6 +1,6 @@
 ---
 layout: single
-classes: wide
+classes: wide artwork-visual-bg
 title: "Artworks"
 permalink: /artworks
 author_profile: true
