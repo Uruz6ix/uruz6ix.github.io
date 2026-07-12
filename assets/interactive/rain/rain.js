@@ -40,10 +40,10 @@
     },
 
     dropEffect: {
-      radius: 0.20,
+      radius: 0.40,
       baseOpacity: 0.28,
       activeOpacity: 1.0,
-      baseSaturation: 0.35,
+      baseSaturation: 0.65,
       activeSaturation: 1.65,
       baseBrightness: 0.92,
       activeBrightness: 1.10,

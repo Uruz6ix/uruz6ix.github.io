@@ -19,8 +19,8 @@
    * 这里要改成 static1.png / static2.png 的实际宽高比。
    * 例如图片是 3000 × 4000，则使用 3 / 4。
    */
-  width: min(92vw, 1100px);
-  aspect-ratio: 1445 / 1829;
+  width: min(92vw, 800px);
+  aspect-ratio: 5 / 6;
 
   margin: 0 auto;
   overflow: hidden;
@@ -76,7 +76,7 @@
    * 水滴是小块独立素材，因此尺寸按画面宽度计算。
    * 如果目前看起来偏大或偏小，主要调整 4.8%。
    */
-  width: clamp(18px, 30%, 64px);
+  width: clamp(180px, 25%, 640px);
   height: auto;
 
   pointer-events: none;

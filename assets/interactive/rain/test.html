@@ -1,32 +1,17 @@
----
-layout: null
-title: Rain
-permalink: /rain/
-sitemap: false
----
-
 <!doctype html>
 <html lang="zh-CN">
 <head>
   <meta charset="utf-8">
-  <meta
-    name="viewport"
-    content="width=device-width, initial-scale=1"
-  >
+  <meta name="viewport" content="width=device-width, initial-scale=1">
 
-  <title>Rain</title>
-
-  <link
-    rel="stylesheet"
-    href="{{ '/assets/interactive/rain/rain.css?v=t8' | relative_url }}"
-  >
+  <link rel="stylesheet" href="./rain.css">
 </head>
 
 <body>
   <div
     id="rain-app"
     v-cloak
-    data-root="{{ '/assets/interactive/rain/' | relative_url }}"
+    data-root="./"
   >
     <div
       ref="scene"
@@ -67,7 +52,7 @@ sitemap: false
     </div>
   </div>
 
-  <script src="https://unpkg.com/vue@3/dist/vue.global.prod.js"></script>
-  <script src="{{ '/assets/interactive/rain/rain.js?v=t8' | relative_url }}"></script>
+  <script src="https://unpkg.com/vue@3/dist/vue.global.js"></script>
+  <script src="./rain.js"></script>
 </body>
 </html>
