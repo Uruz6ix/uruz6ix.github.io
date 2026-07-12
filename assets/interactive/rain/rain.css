@@ -76,7 +76,7 @@
    * 水滴是小块独立素材，因此尺寸按画面宽度计算。
    * 如果目前看起来偏大或偏小，主要调整 4.8%。
    */
-  width: clamp(18px, 4.8%, 64px);
+  width: clamp(18px, 30%, 64px);
   height: auto;
 
   pointer-events: none;
