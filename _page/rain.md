@@ -1,0 +1,59 @@
+---
+layout: single
+title: Rain
+permalink: /rain/
+classes: wide rain-page
+author_profile: false
+---
+
+<link
+  rel="stylesheet"
+  href="{{ '/assets/interactive/rain/rain.css' | relative_url }}"
+>
+
+<div
+  id="rain-app"
+  v-cloak
+  data-root="{{ '/assets/interactive/rain/' | relative_url }}"
+>
+  <div
+    ref="scene"
+    class="rain-scene"
+    @pointermove="onPointerMove"
+    @pointerleave="onPointerLeave"
+  >
+    <img
+      v-for="layer in staticLayers"
+      :key="layer"
+      class="rain-layer rain-static"
+      :src="assetUrl(layer)"
+      alt=""
+      draggable="false"
+    >
+
+    <img
+      v-for="leaf in leaves"
+      :key="leaf.id"
+      class="rain-layer rain-leaf"
+      :src="assetUrl(leaf.src)"
+      :style="leafStyle(leaf)"
+      alt=""
+      draggable="false"
+    >
+
+    <div class="rain-drops" aria-hidden="true">
+      <img
+        v-for="drop in drops"
+        :key="drop.id"
+        class="rain-drop"
+        :src="assetUrl(drop.src)"
+        :style="dropStyle(drop)"
+        alt=""
+        draggable="false"
+      >
+    </div>
+  </div>
+</div>
+
+<script src="https://unpkg.com/vue@3/dist/vue.global.prod.js"></script>
+<script src="{{ '/assets/interactive/rain/rain.js' | relative_url }}"></script>

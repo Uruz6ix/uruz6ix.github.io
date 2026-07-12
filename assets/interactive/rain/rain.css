@@ -1,0 +1,123 @@
+[v-cloak] {
+  display: none;
+}
+
+.rain-page .page__inner-wrap,
+.rain-page .page__content {
+  width: 100%;
+  max-width: none;
+}
+
+#rain-app {
+  width: 100%;
+}
+
+.rain-scene {
+  position: relative;
+
+  /*
+   * 这里要改成 static1.png / static2.png 的实际宽高比。
+   * 例如图片是 3000 × 4000，则使用 3 / 4。
+   */
+  width: min(92vw, 1100px);
+  aspect-ratio: 1445 / 1829;
+
+  margin: 0 auto;
+  overflow: hidden;
+  isolation: isolate;
+
+  user-select: none;
+  touch-action: pan-y;
+}
+
+.rain-layer {
+  position: absolute;
+  inset: 0;
+
+  display: block;
+  width: 100%;
+  height: 100%;
+  object-fit: contain;
+
+  pointer-events: none;
+  user-select: none;
+}
+
+.rain-static {
+  z-index: 1;
+}
+
+.rain-static:nth-of-type(2) {
+  z-index: 2;
+}
+
+.rain-leaf {
+  z-index: 3;
+
+  transition:
+    transform 180ms cubic-bezier(0.22, 0.61, 0.36, 1);
+
+  will-change: transform;
+}
+
+.rain-drops {
+  position: absolute;
+  inset: 0;
+  z-index: 4;
+
+  overflow: hidden;
+  pointer-events: none;
+}
+
+.rain-drop {
+  position: absolute;
+
+  /*
+   * 水滴是小块独立素材，因此尺寸按画面宽度计算。
+   * 如果目前看起来偏大或偏小，主要调整 4.8%。
+   */
+  width: clamp(18px, 4.8%, 64px);
+  height: auto;
+
+  pointer-events: none;
+  user-select: none;
+
+  transform-origin: center;
+
+  transition:
+    opacity 110ms linear,
+    filter 110ms linear,
+    transform 110ms linear;
+
+  will-change:
+    opacity,
+    filter,
+    transform;
+}
+
+@media (hover: none), (pointer: coarse) {
+  .rain-leaf {
+    transform: none !important;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .rain-leaf,
+  .rain-drop {
+    transition: none;
+  }
+
+  .rain-leaf {
+    transform: none !important;
+  }
+}
+
+@media (max-width: 700px) {
+  .rain-scene {
+    width: 100%;
+  }
+
+  .rain-drop {
+    width: 5.2%;
+  }
+}
