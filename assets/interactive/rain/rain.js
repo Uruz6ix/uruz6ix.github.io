@@ -27,22 +27,23 @@
       assetUrl("drop1.png"),
       assetUrl("drop2.png"),
       assetUrl("drop3.png"),
+      assetUrl("drop4.png"),
     ],
 
     dropGrid: {
-      rows: 8,
+      rows: 9,
       columns: 11,
       minX: 0.1,
       maxX: 0.90,
       minY: 0.1,
       maxY: 0.90,
-      jitterX: 0.012,
-      jitterY: 0.014,
+      jitterX: 0.02,
+      jitterY: 0.04,
     },
 
     dropEffect: {
       radius: 0.40,
-      baseOpacity: 0.28,
+      baseOpacity: 0.48,
       activeOpacity: 1.0,
       baseSaturation: 0.65,
       activeSaturation: 1.65,
