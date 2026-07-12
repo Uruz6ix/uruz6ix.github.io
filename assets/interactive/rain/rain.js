@@ -81,17 +81,25 @@
         coarsePointer: false,
       };
     },
-
     mounted() {
-      this.rootPath = this.normaliseRootPath(
+    this.rootPath = this.normaliseRootPath(
         this.$el.dataset.root || ""
-      );
+    );
 
-      this.coarsePointer = window.matchMedia(
+    this.coarsePointer = window.matchMedia(
         "(hover: none), (pointer: coarse)"
-      ).matches;
+    ).matches;
 
-      this.drops = this.createDropGrid();
+    this.staticLayers = CONFIG.staticLayers.map(
+        filename => this.assetUrl(filename)
+    );
+
+    this.leaves = CONFIG.leaves.map(leaf => ({
+        ...leaf,
+        src: this.assetUrl(leaf.src),
+    }));
+
+    this.drops = this.createDropGrid();
     },
 
     beforeUnmount() {
@@ -169,9 +177,11 @@
 
             drops.push({
               id: `drop-${index}`,
-              src: CONFIG.dropImages[
-                index % CONFIG.dropImages.length
-              ],
+              src: this.assetUrl(
+                CONFIG.dropImages[
+                    index % CONFIG.dropImages.length
+                ]
+            ),
               x: this.clamp(baseX + jitterX, 0, 1),
               y: this.clamp(baseY + jitterY, 0, 1),
               rotation:
