@@ -7,9 +7,72 @@
   width: 100%;
   max-width: none;
 }
+html,
+body {
+  width: 100%;
+  height: 100%;
+  margin: 0;
+  overflow: hidden;
+}
+
+body {
+  position: relative;
+  isolation: isolate;
+  background-color: #fff;
+}
+
+/*
+ * 浏览器使用 SVG turbulence 自动生成细颗粒噪声，
+ * 并在整个页面上重复铺设。
+ */
+body::before {
+  content: "";
+
+  position: fixed;
+  inset: 0;
+  z-index: 0;
+
+  pointer-events: none;
+
+  background-image:
+    url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='280' height='280' viewBox='0 0 280 280'%3E%3Cfilter id='paperNoise'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='.72' numOctaves='4' seed='19' stitchTiles='stitch'/%3E%3CfeColorMatrix type='saturate' values='0'/%3E%3CfeComponentTransfer%3E%3CfeFuncA type='table' tableValues='0 .24'/%3E%3C/feComponentTransfer%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23paperNoise)'/%3E%3C/svg%3E"),
+    repeating-linear-gradient(
+      8deg,
+      transparent 0,
+      transparent 5px,
+      rgba(83, 67, 42, 0.018) 6px
+    ),
+    radial-gradient(
+      ellipse at 45% 35%,
+      rgba(255, 255, 255, 0.28),
+      rgba(191, 169, 132, 0.08) 75%,
+      rgba(122, 98, 64, 0.10)
+    );
+
+  background-size:
+    280px 280px,
+    9px 9px,
+    100% 100%;
+
+  background-repeat:
+    repeat,
+    repeat,
+    no-repeat;
+
+  mix-blend-mode: multiply;
+  opacity: 0.88;
+}
 
 #rain-app {
+  position: relative;
+  z-index: 1;
+
   width: 100%;
+  min-height: 100dvh;
+}
+
+.rain-scene {
+  background: transparent;
 }
 
 .rain-scene {
@@ -43,12 +106,54 @@
   user-select: none;
 }
 
-.rain-static {
+.rain-static-background {
   z-index: 1;
 }
 
-.rain-static:nth-of-type(2) {
+.rain-static-portrait {
   z-index: 2;
+}
+
+/*
+ * 始终显示的毛玻璃人像。
+ * scale 用于补偿 blur 在图像边缘可能产生的透明缝隙。
+ */
+.rain-static-portrait-blur {
+  filter:
+    blur(5px)
+    saturate(0.72)
+    brightness(1.04);
+
+  opacity: 0.88;
+  transform: scale(1.015);
+  transform-origin: center;
+}
+
+
+.rain-static-portrait-clear {
+  --reveal-opacity: 0;
+
+  opacity: var(--reveal-opacity);
+
+  .rain-static-portrait-clear {
+  opacity: 0;
+
+  -webkit-mask-repeat: no-repeat;
+  mask-repeat: no-repeat;
+
+  transition: opacity 450ms ease-in-out;
+
+  will-change:
+    opacity,
+    -webkit-mask-image,
+    mask-image;
+}
+  transition: opacity 180ms ease-out;
+
+  will-change:
+    opacity,
+    -webkit-mask-image,
+    mask-image;
 }
 
 .rain-leaf {

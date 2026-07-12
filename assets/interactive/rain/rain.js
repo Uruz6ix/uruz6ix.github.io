@@ -3,6 +3,7 @@
 
   const { createApp } = Vue;
 
+
   const appElement = document.getElementById("rain-app");
 
   if (!appElement) {
@@ -31,10 +32,10 @@
     dropGrid: {
       rows: 8,
       columns: 11,
-      minX: 0.05,
-      maxX: 0.95,
-      minY: 0.05,
-      maxY: 0.95,
+      minX: 0.1,
+      maxX: 0.90,
+      minY: 0.1,
+      maxY: 0.90,
       jitterX: 0.012,
       jitterY: 0.014,
     },
@@ -51,46 +52,77 @@
     },
 
     leaves: [
-      { src: assetUrl("leaf1.png"),  anchorX: 0.08, anchorY: 0.84, originX: 8,  originY: 84, direction: 1 },
-      { src: assetUrl("leaf2.png"),  anchorX: 0.15, anchorY: 0.78, originX: 15, originY: 78, direction: -1 },
-      { src: assetUrl("leaf3.png"),  anchorX: 0.22, anchorY: 0.86, originX: 22, originY: 86, direction: 1 },
-      { src: assetUrl("leaf4.png"),  anchorX: 0.30, anchorY: 0.80, originX: 30, originY: 80, direction: -1 },
-      { src: assetUrl("leaf5.png"),  anchorX: 0.38, anchorY: 0.87, originX: 38, originY: 87, direction: 1 },
-      { src: assetUrl("leaf6.png"),  anchorX: 0.45, anchorY: 0.81, originX: 45, originY: 81, direction: -1 },
-      { src: assetUrl("leaf7.png"),  anchorX: 0.52, anchorY: 0.86, originX: 52, originY: 86, direction: 1 },
-      { src: assetUrl("leaf8.png"),  anchorX: 0.59, anchorY: 0.79, originX: 59, originY: 79, direction: -1 },
-      { src: assetUrl("leaf9.png"),  anchorX: 0.66, anchorY: 0.85, originX: 66, originY: 85, direction: 1 },
-      { src: assetUrl("leaf10.png"), anchorX: 0.73, anchorY: 0.80, originX: 73, originY: 80, direction: -1 },
-      { src: assetUrl("leaf11.png"), anchorX: 0.80, anchorY: 0.87, originX: 80, originY: 87, direction: 1 },
-      { src: assetUrl("leaf12.png"), anchorX: 0.88, anchorY: 0.81, originX: 88, originY: 81, direction: -1 },
-      { src: assetUrl("leaf13.png"), anchorX: 0.95, anchorY: 0.86, originX: 95, originY: 86, direction: 1 },
+      { src: assetUrl("leaf1.png"),  anchorX: 0.75, anchorY: 0.68, originX: 75,  originY: 68, direction: 1 },
+      { src: assetUrl("leaf2.png"),  anchorX: 0.58, anchorY: 0.89, originX: 58, originY: 89, direction: -1 },
+      { src: assetUrl("leaf3.png"),  anchorX: 0.85, anchorY: 0.36, originX: 85, originY: 36, direction: 1 },
+      { src: assetUrl("leaf4.png"),  anchorX: 0.84, anchorY: 0.44, originX: 84, originY: 44, direction: -1 },
+      { src: assetUrl("leaf5.png"),  anchorX: 0.58, anchorY: 0.50, originX: 58, originY: 50, direction: 1 },
+      { src: assetUrl("leaf6.png"),  anchorX: 0.65, anchorY: 0.70, originX: 65, originY: 70, direction: -1 },
+      { src: assetUrl("leaf7.png"),  anchorX: 0.43, anchorY: 0.74, originX: 43, originY: 74, direction: -1 },
+      { src: assetUrl("leaf8.png"),  anchorX: 0.51, anchorY: 0.65, originX: 51, originY: 65, direction: 1 },
+      { src: assetUrl("leaf9.png"),  anchorX: 0.44, anchorY: 0.55, originX: 44, originY: 55, direction: 1 },
+      { src: assetUrl("leaf10.png"), anchorX: 0.34, anchorY: 0.57, originX: 34, originY: 57, direction: -1 },
+      { src: assetUrl("leaf11.png"), anchorX: 0.32, anchorY: 0.575, originX: 32, originY: 57, direction: 1 },
+      { src: assetUrl("leaf12.png"), anchorX: 0.34, anchorY: 0.70, originX: 34, originY: 70, direction: -1 },
+      { src: assetUrl("leaf13.png"), anchorX: 0.15, anchorY: 0.53, originX: 15, originY: 53, direction: 1 },
     ].map((leaf, index) => ({
       ...leaf,
       id: `leaf-${index + 1}`,
-      radius: 0.27,
-      maxRotation: 4.5,
-      maxShift: 5,
+      radius: 0.47,
+      maxRotation: 9.5,
+      maxShift: 0,
     })),
   };
+function createPortraitBlob() {
+  const lobes = [
+    {
+      dx: 0,
+      dy: 0,
+      radius: 12.2 + Math.random() * 3.8,
+    },
+  ];
+
+  // 原来外围有 7 块，现在改成 4 块。
+  const surroundingCount = 4;
+
+  for (let i = 0; i < surroundingCount; i += 1) {
+    const angle =
+      (Math.PI * 2 * i) / surroundingCount +
+      (Math.random() - 0.5) * 0.9;
+
+    // 外围块离中心更近，避免拼成一个大范围。
+    const distance = 0.012 + Math.random() * 0.15;
+
+    lobes.push({
+      dx: Math.cos(angle) * distance,
+      dy: Math.sin(angle) * distance,
+      radius: 10.2 + Math.random() * 3.8,
+    });
+  }
+
+  return lobes;
+}
 
   createApp({
     data() {
-        return {
-            staticLayers: CONFIG.staticLayers,
-            leaves: CONFIG.leaves,
-            drops: [],
+  return {
+    staticLayers: CONFIG.staticLayers,
+    leaves: CONFIG.leaves,
+    drops: [],
 
-            pointer: {
-                x: 0.5,
-                y: 0.5,
-                active: false,
-            },
+    portraitBlob: createPortraitBlob(),
 
-        pendingPointer: null,
-        animationFrameId: null,
-        coarsePointer: false,
-        };
+    pointer: {
+      x: 0.5,
+      y: 0.5,
+      active: false,
     },
+
+    pendingPointer: null,
+    animationFrameId: null,
+    coarsePointer: false,
+  };
+},
     mounted() {
         this.coarsePointer = window.matchMedia(
             "(hover: none), (pointer: coarse)"
@@ -110,7 +142,55 @@
       clamp(value, minimum, maximum) {
         return Math.min(Math.max(value, minimum), maximum);
       },
+      portraitRevealStyle() {
+  const gradients = this.portraitBlob.map(lobe => {
+    const x = this.clamp(
+      this.pointer.x + lobe.dx,
+      0,
+      1
+    );
 
+    const y = this.clamp(
+      this.pointer.y + lobe.dy,
+      0,
+      1
+    );
+
+    return `
+      radial-gradient(
+        circle ${lobe.radius}vmin at ${x * 100}% ${y * 100}%,
+        rgba(0, 0, 0, 0.96) 0%,
+        rgba(0, 0, 0, 0.76) 14%,
+        rgba(0, 0, 0, 0.58) 38%,
+        rgba(0, 0, 0, 0.28) 65%,
+        rgba(0, 0, 0, 0.08) 86%,
+        transparent 100%
+      )
+    `;
+  }).join(",");
+
+  
+  const edgeDistance = Math.min(
+    this.pointer.x,
+    1 - this.pointer.x,
+    this.pointer.y,
+    1 - this.pointer.y
+  );
+
+  const edgeFade = this.smoothStep(
+    edgeDistance / 0.08
+  );
+
+  const opacity = this.pointer.active
+    ? 0.92 * edgeFade
+    : 0;
+
+  return {
+    opacity,
+    WebkitMaskImage: gradients,
+    maskImage: gradients,
+  };
+},
       smoothStep(value) {
         const x = this.clamp(value, 0, 1);
         return x * x * (3 - 2 * x);
@@ -124,67 +204,70 @@
       },
 
       createDropGrid() {
-        const grid = CONFIG.dropGrid;
-        const drops = [];
+  const grid = CONFIG.dropGrid;
+  const drops = [];
 
-        for (let row = 0; row < grid.rows; row += 1) {
-          for (
-            let column = 0;
-            column < grid.columns;
-            column += 1
-          ) {
-            const index = row * grid.columns + column;
+  for (let row = 0; row < grid.rows; row += 1) {
+    for (
+      let column = 0;
+      column < grid.columns;
+      column += 1
+    ) {
+      const index = row * grid.columns + column;
 
-            const columnRatio =
-              grid.columns === 1
-                ? 0.5
-                : column / (grid.columns - 1);
+      const columnRatio =
+        grid.columns === 1
+          ? 0.5
+          : column / (grid.columns - 1);
 
-            const rowRatio =
-              grid.rows === 1
-                ? 0.5
-                : row / (grid.rows - 1);
+      const rowRatio =
+        grid.rows === 1
+          ? 0.5
+          : row / (grid.rows - 1);
 
-            const baseX =
-              grid.minX +
-              columnRatio * (grid.maxX - grid.minX);
+      const baseX =
+        grid.minX +
+        columnRatio * (grid.maxX - grid.minX);
 
-            const baseY =
-              grid.minY +
-              rowRatio * (grid.maxY - grid.minY);
+      const baseY =
+        grid.minY +
+        rowRatio * (grid.maxY - grid.minY);
 
-            const jitterX =
-              (this.seededValue(index * 2 + 1) - 0.5) *
-              grid.jitterX;
+      /*
+       * 使用 Math.random()：
+       * 每次刷新都会重新生成位置、种类、大小和角度。
+       */
+      const jitterX =
+        (Math.random() - 0.5) * grid.jitterX;
 
-            const jitterY =
-              (this.seededValue(index * 2 + 2) - 0.5) *
-              grid.jitterY;
+      const jitterY =
+        (Math.random() - 0.5) * grid.jitterY;
 
-            drops.push({
-              id: `drop-${index}`,
-              src: CONFIG.dropImages[
-                index % CONFIG.dropImages.length
-                ],
-              x: this.clamp(baseX + jitterX, 0, 1),
-              y: this.clamp(baseY + jitterY, 0, 1),
-              rotation:
-                -10 +
-                this.seededValue(index * 3 + 5) * 20,
-              baseScale:
-                0.86 +
-                this.seededValue(index * 5 + 9) * 0.22,
-            });
-          }
-        }
+      drops.push({
+        id: `drop-${index}`,
 
-        return drops;
-      },
+        src: CONFIG.dropImages[
+          Math.floor(
+            Math.random() * CONFIG.dropImages.length
+          )
+        ],
+
+        x: this.clamp(baseX + jitterX, 0, 1),
+        y: this.clamp(baseY + jitterY, 0, 1),
+
+        rotation: -10 + Math.random() * 20,
+        baseScale: 0.78 + Math.random() * 0.44,
+      });
+    }
+  }
+
+  return drops;
+},
 
       onPointerMove(event) {
-        if (this.coarsePointer) {
-          return;
-        }
+        // if (this.coarsePointer) {
+        //   return;
+        // }
 
         const rect =
           this.$refs.scene.getBoundingClientRect();
@@ -288,38 +371,39 @@
       },
 
       leafStyle(leaf) {
-        const influence = this.distanceInfluence(
-          leaf.anchorX,
-          leaf.anchorY,
-          leaf.radius
-        );
+  const influence = this.distanceInfluence(
+    leaf.anchorX,
+    leaf.anchorY,
+    leaf.radius
+  );
 
-        /*
-         * 指针位于植物左侧或右侧时，摆动方向不同。
-         */
-        const horizontalDirection =
-          this.pointer.x < leaf.anchorX ? -1 : 1;
+  // 指针相对植物中心的水平位置，范围限制在 -1 到 1。
+  const horizontalOffset = this.clamp(
+    (this.pointer.x - leaf.anchorX) / leaf.radius,
+    -1,
+    1
+  );
 
-        const rotation =
-          influence *
-          leaf.maxRotation *
-          horizontalDirection *
-          leaf.direction;
+  const rotation =
+    influence *
+    leaf.maxRotation *
+    horizontalOffset *
+    leaf.direction;
 
-        const shiftX =
-          influence *
-          leaf.maxShift *
-          horizontalDirection;
+  const shiftX =
+    influence *
+    leaf.maxShift *
+    horizontalOffset;
 
-        return {
-          transformOrigin:
-            `${leaf.originX}% ${leaf.originY}%`,
+  return {
+    transformOrigin:
+      `${leaf.originX}% ${leaf.originY}%`,
 
-          transform:
-            `translateX(${shiftX}px) ` +
-            `rotate(${rotation}deg)`,
-        };
-      },
+    transform:
+      `translateX(${shiftX}px) ` +
+      `rotate(${rotation}deg)`,
+  };
+},
     },
   }).mount(appElement);
 })();
