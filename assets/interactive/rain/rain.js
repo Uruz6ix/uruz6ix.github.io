@@ -3,10 +3,30 @@
 
   const { createApp } = Vue;
 
-  const CONFIG = {
-    staticLayers: ["static1.png", "static2.png"],
+  const appElement = document.getElementById("rain-app");
 
-    dropImages: ["drop1.png", "drop2.png", "drop3.png"],
+  if (!appElement) {
+    console.error("Rain app element was not found.");
+    return;
+  }
+
+  const rootPath = appElement.dataset.root.endsWith("/")
+    ? appElement.dataset.root
+    : `${appElement.dataset.root}/`;
+
+  const assetUrl = filename => `${rootPath}${filename}`;
+
+  const CONFIG = {
+    staticLayers: [
+      assetUrl("static1.png"),
+      assetUrl("static2.png"),
+    ],
+
+    dropImages: [
+      assetUrl("drop1.png"),
+      assetUrl("drop2.png"),
+      assetUrl("drop3.png"),
+    ],
 
     dropGrid: {
       rows: 8,
@@ -30,29 +50,20 @@
       activeScale: 1.08,
     },
 
-    /*
-     * anchorX / anchorY：
-     * 植物根部或主要摆动位置在整张画面中的归一化坐标。
-     *
-     * originX / originY：
-     * CSS transform-origin，同样按整张画面的百分比定义。
-     *
-     * 目前只是初始估计。等你看到实际效果后，主要调整这四个量。
-     */
     leaves: [
-      { src: "leaf1.png",  anchorX: 0.08, anchorY: 0.84, originX: 8,  originY: 84, direction:  1 },
-      { src: "leaf2.png",  anchorX: 0.15, anchorY: 0.78, originX: 15, originY: 78, direction: -1 },
-      { src: "leaf3.png",  anchorX: 0.22, anchorY: 0.86, originX: 22, originY: 86, direction:  1 },
-      { src: "leaf4.png",  anchorX: 0.30, anchorY: 0.80, originX: 30, originY: 80, direction: -1 },
-      { src: "leaf5.png",  anchorX: 0.38, anchorY: 0.87, originX: 38, originY: 87, direction:  1 },
-      { src: "leaf6.png",  anchorX: 0.45, anchorY: 0.81, originX: 45, originY: 81, direction: -1 },
-      { src: "leaf7.png",  anchorX: 0.52, anchorY: 0.86, originX: 52, originY: 86, direction:  1 },
-      { src: "leaf8.png",  anchorX: 0.59, anchorY: 0.79, originX: 59, originY: 79, direction: -1 },
-      { src: "leaf9.png",  anchorX: 0.66, anchorY: 0.85, originX: 66, originY: 85, direction:  1 },
-      { src: "leaf10.png", anchorX: 0.73, anchorY: 0.80, originX: 73, originY: 80, direction: -1 },
-      { src: "leaf11.png", anchorX: 0.80, anchorY: 0.87, originX: 80, originY: 87, direction:  1 },
-      { src: "leaf12.png", anchorX: 0.88, anchorY: 0.81, originX: 88, originY: 81, direction: -1 },
-      { src: "leaf13.png", anchorX: 0.95, anchorY: 0.86, originX: 95, originY: 86, direction:  1 },
+      { src: assetUrl("leaf1.png"),  anchorX: 0.08, anchorY: 0.84, originX: 8,  originY: 84, direction: 1 },
+      { src: assetUrl("leaf2.png"),  anchorX: 0.15, anchorY: 0.78, originX: 15, originY: 78, direction: -1 },
+      { src: assetUrl("leaf3.png"),  anchorX: 0.22, anchorY: 0.86, originX: 22, originY: 86, direction: 1 },
+      { src: assetUrl("leaf4.png"),  anchorX: 0.30, anchorY: 0.80, originX: 30, originY: 80, direction: -1 },
+      { src: assetUrl("leaf5.png"),  anchorX: 0.38, anchorY: 0.87, originX: 38, originY: 87, direction: 1 },
+      { src: assetUrl("leaf6.png"),  anchorX: 0.45, anchorY: 0.81, originX: 45, originY: 81, direction: -1 },
+      { src: assetUrl("leaf7.png"),  anchorX: 0.52, anchorY: 0.86, originX: 52, originY: 86, direction: 1 },
+      { src: assetUrl("leaf8.png"),  anchorX: 0.59, anchorY: 0.79, originX: 59, originY: 79, direction: -1 },
+      { src: assetUrl("leaf9.png"),  anchorX: 0.66, anchorY: 0.85, originX: 66, originY: 85, direction: 1 },
+      { src: assetUrl("leaf10.png"), anchorX: 0.73, anchorY: 0.80, originX: 73, originY: 80, direction: -1 },
+      { src: assetUrl("leaf11.png"), anchorX: 0.80, anchorY: 0.87, originX: 80, originY: 87, direction: 1 },
+      { src: assetUrl("leaf12.png"), anchorX: 0.88, anchorY: 0.81, originX: 88, originY: 81, direction: -1 },
+      { src: assetUrl("leaf13.png"), anchorX: 0.95, anchorY: 0.86, originX: 95, originY: 86, direction: 1 },
     ].map((leaf, index) => ({
       ...leaf,
       id: `leaf-${index + 1}`,
@@ -64,42 +75,28 @@
 
   createApp({
     data() {
-      return {
-        rootPath: "",
-        staticLayers: CONFIG.staticLayers,
-        leaves: CONFIG.leaves,
-        drops: [],
+        return {
+            staticLayers: CONFIG.staticLayers,
+            leaves: CONFIG.leaves,
+            drops: [],
 
-        pointer: {
-          x: 0.5,
-          y: 0.5,
-          active: false,
-        },
+            pointer: {
+                x: 0.5,
+                y: 0.5,
+                active: false,
+            },
 
         pendingPointer: null,
         animationFrameId: null,
         coarsePointer: false,
-      };
+        };
     },
     mounted() {
-    this.rootPath = this.normaliseRootPath(
-        this.$el.dataset.root || ""
-    );
+        this.coarsePointer = window.matchMedia(
+            "(hover: none), (pointer: coarse)"
+        ).matches;
 
-    this.coarsePointer = window.matchMedia(
-        "(hover: none), (pointer: coarse)"
-    ).matches;
-
-    this.staticLayers = CONFIG.staticLayers.map(
-        filename => this.assetUrl(filename)
-    );
-
-    this.leaves = CONFIG.leaves.map(leaf => ({
-        ...leaf,
-        src: this.assetUrl(leaf.src),
-    }));
-
-    this.drops = this.createDropGrid();
+        this.drops = this.createDropGrid();
     },
 
     beforeUnmount() {
@@ -109,18 +106,7 @@
     },
 
     methods: {
-      normaliseRootPath(path) {
-        if (!path) {
-          return "";
-        }
-
-        return path.endsWith("/") ? path : `${path}/`;
-      },
-
-      assetUrl(filename) {
-        return `${this.rootPath}${filename}`;
-      },
-
+      
       clamp(value, minimum, maximum) {
         return Math.min(Math.max(value, minimum), maximum);
       },
@@ -177,11 +163,9 @@
 
             drops.push({
               id: `drop-${index}`,
-              src: this.assetUrl(
-                CONFIG.dropImages[
-                    index % CONFIG.dropImages.length
-                ]
-            ),
+              src: CONFIG.dropImages[
+                index % CONFIG.dropImages.length
+                ],
               x: this.clamp(baseX + jitterX, 0, 1),
               y: this.clamp(baseY + jitterY, 0, 1),
               rotation:
@@ -337,5 +321,5 @@
         };
       },
     },
-  }).mount("#rain-app");
+  }).mount("appElement");
 })();
