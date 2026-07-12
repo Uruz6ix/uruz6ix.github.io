@@ -321,5 +321,5 @@
         };
       },
     },
-  }).mount("appElement");
+  }).mount(appElement);
 })();
