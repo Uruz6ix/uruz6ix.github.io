@@ -15,7 +15,10 @@
     ? appElement.dataset.root
     : `${appElement.dataset.root}/`;
 
-  const assetUrl = filename => `${rootPath}${filename}`;
+  const useMobileAssets = window.matchMedia("(max-width: 700px)").matches;
+
+  const assetUrl = filename =>
+    `${rootPath}${useMobileAssets ? "mobile/" : ""}${filename}`;
 
   const CONFIG = {
     staticLayers: [
@@ -121,14 +124,10 @@ function createPortraitBlob() {
 
     pendingPointer: null,
     animationFrameId: null,
-    coarsePointer: false,
+    activePointerId: null,
   };
 },
     mounted() {
-        this.coarsePointer = window.matchMedia(
-            "(hover: none), (pointer: coarse)"
-        ).matches;
-
         this.drops = this.createDropGrid();
     },
 
@@ -265,13 +264,13 @@ function createPortraitBlob() {
   return drops;
 },
 
-      onPointerMove(event) {
-        // if (this.coarsePointer) {
-        //   return;
-        // }
-
+      updatePointer(event) {
         const rect =
           this.$refs.scene.getBoundingClientRect();
+
+        if (!rect.width || !rect.height) {
+          return;
+        }
 
         this.pendingPointer = {
           x: this.clamp(
@@ -302,7 +301,38 @@ function createPortraitBlob() {
           });
       },
 
-      onPointerLeave() {
+      onPointerDown(event) {
+        this.activePointerId = event.pointerId;
+        this.$refs.scene.setPointerCapture?.(event.pointerId);
+        this.updatePointer(event);
+      },
+
+      onPointerMove(event) {
+        if (event.pointerType !== "mouse" &&
+            this.activePointerId !== event.pointerId) {
+          return;
+        }
+
+        this.updatePointer(event);
+      },
+
+      onPointerLeave(event) {
+        if (event.pointerType !== "mouse") {
+          return;
+        }
+
+        this.pointer.active = false;
+      },
+
+      onPointerEnd(event) {
+        if (this.activePointerId !== event.pointerId) {
+          return;
+        }
+
+        if (this.$refs.scene.hasPointerCapture?.(event.pointerId)) {
+          this.$refs.scene.releasePointerCapture(event.pointerId);
+        }
+        this.activePointerId = null;
         this.pointer.active = false;
       },
 

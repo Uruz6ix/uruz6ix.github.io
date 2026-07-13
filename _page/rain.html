@@ -31,8 +31,11 @@ sitemap: false
     <div
       ref="scene"
       class="rain-scene"
+      @pointerdown="onPointerDown"
       @pointermove="onPointerMove"
       @pointerleave="onPointerLeave"
+      @pointerup="onPointerEnd"
+      @pointercancel="onPointerEnd"
     >
       <!-- static1：普通静态底层 -->
 <img
@@ -84,6 +87,6 @@ sitemap: false
   </div>
 
   <script src="https://unpkg.com/vue@3/dist/vue.global.prod.js"></script>
-  <script src="{{ '/assets/interactive/rain/rain.js?v=t8' | relative_url }}"></script>
+  <script src="{{ '/assets/interactive/rain/rain.js?v=t9' | relative_url }}"></script>
 </body>
 </html>

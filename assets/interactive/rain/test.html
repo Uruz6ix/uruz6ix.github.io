@@ -16,8 +16,11 @@
     <div
       ref="scene"
       class="rain-scene"
+      @pointerdown="onPointerDown"
       @pointermove="onPointerMove"
       @pointerleave="onPointerLeave"
+      @pointerup="onPointerEnd"
+      @pointercancel="onPointerEnd"
     >
       <!-- static1：普通静态底层 -->
     <img

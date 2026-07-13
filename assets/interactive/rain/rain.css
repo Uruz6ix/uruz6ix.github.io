@@ -82,15 +82,15 @@ body::before {
    * 这里要改成 static1.png / static2.png 的实际宽高比。
    * 例如图片是 3000 × 4000，则使用 3 / 4。
    */
-  height: min(105vh, 1800px);
-  aspect-ratio: 5 / 6;
+  width: min(100vw, calc(100dvh * 1445 / 1829), calc(1800px * 1445 / 1829));
+  aspect-ratio: 1445 / 1829;
 
   margin: 0 auto;
   overflow: hidden;
   isolation: isolate;
 
   user-select: none;
-  touch-action: pan-y;
+  touch-action: none;
 }
 
 .rain-layer {
@@ -182,12 +182,6 @@ body::before {
   will-change: opacity, filter, transform;
 }
 
-@media (hover: none), (pointer: coarse) {
-  .rain-leaf {
-    transform: none !important;
-  }
-}
-
 @media (prefers-reduced-motion: reduce) {
   .rain-leaf,
   .rain-drop {
@@ -200,10 +194,6 @@ body::before {
 }
 
 @media (max-width: 700px) {
-  .rain-scene {
-    width: 100%;
-  }
-
   .rain-drop {
     width: 25.2%;
   }
