@@ -83,6 +83,7 @@
     staticLayers: CONFIG.staticLayers,
     leaves: CONFIG.leaves,
     drops: [],
+    ready: false,
 
     pointer: {
       x: 0.5,
@@ -93,10 +94,11 @@
     pendingPointer: null,
     animationFrameId: null,
     activePointerId: null,
+    activeTouchId: null,
   };
 },
     mounted() {
-        this.drops = this.createDropGrid();
+      window.setTimeout(() => this.initializeScene(), 120);
     },
 
     beforeUnmount() {
@@ -107,6 +109,44 @@
 
     methods: {
       
+      async initializeScene() {
+        await this.preloadAssets();
+        this.drops = this.createDropGrid();
+        this.ready = true;
+      },
+
+      async preloadAssets() {
+        const urls = [
+          ...CONFIG.staticLayers,
+          ...CONFIG.dropImages,
+          ...CONFIG.leaves.map(leaf => leaf.src),
+        ];
+
+        for (const url of urls) {
+          await this.preloadImage(url);
+        }
+      },
+
+      preloadImage(url, attempt = 0) {
+        return new Promise(resolve => {
+          const image = new Image();
+          image.decoding = "async";
+          image.onload = () => resolve();
+          image.onerror = () => {
+            if (attempt < 2) {
+              window.setTimeout(
+                () => resolve(this.preloadImage(url, attempt + 1)),
+                120
+              );
+              return;
+            }
+
+            console.warn(`Rain asset could not be preloaded: ${url}`);
+            resolve();
+          };
+          image.src = attempt ? `${url}?retry=${attempt}` : url;
+        });
+      },
       clamp(value, minimum, maximum) {
         return Math.min(Math.max(value, minimum), maximum);
       },
@@ -202,24 +242,23 @@
 },
 
       updatePointer(event) {
-        const rect =
-          this.$refs.scene.getBoundingClientRect();
+        this.updatePointerPosition(event.clientX, event.clientY);
+      },
 
+      updatePointerPosition(clientX, clientY) {
+        const scene = this.$refs.scene;
+        if (!scene) {
+          return;
+        }
+
+        const rect = scene.getBoundingClientRect();
         if (!rect.width || !rect.height) {
           return;
         }
 
         this.pendingPointer = {
-          x: this.clamp(
-            (event.clientX - rect.left) / rect.width,
-            0,
-            1
-          ),
-          y: this.clamp(
-            (event.clientY - rect.top) / rect.height,
-            0,
-            1
-          ),
+          x: this.clamp((clientX - rect.left) / rect.width, 0, 1),
+          y: this.clamp((clientY - rect.top) / rect.height, 0, 1),
         };
 
         if (this.animationFrameId !== null) {
@@ -238,6 +277,36 @@
           });
       },
 
+      onTouchStart(event) {
+        const touch = event.touches[0];
+        if (!touch) {
+          return;
+        }
+
+        this.activeTouchId = touch.identifier;
+        this.updatePointerPosition(touch.clientX, touch.clientY);
+      },
+
+      onTouchMove(event) {
+        const touch = Array.from(event.touches).find(
+          item => item.identifier === this.activeTouchId
+        );
+        if (touch) {
+          this.updatePointerPosition(touch.clientX, touch.clientY);
+        }
+      },
+
+      onTouchEnd(event) {
+        const ended = Array.from(event.changedTouches).some(
+          item => item.identifier === this.activeTouchId
+        );
+        if (!ended) {
+          return;
+        }
+
+        this.activeTouchId = null;
+        this.pointer.active = false;
+      },
       onPointerDown(event) {
         this.activePointerId = event.pointerId;
         this.$refs.scene.setPointerCapture?.(event.pointerId);

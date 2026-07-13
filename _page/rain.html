@@ -18,7 +18,7 @@ sitemap: false
 
   <link
     rel="stylesheet"
-    href="{{ '/assets/interactive/rain/rain.css?v=t10' | relative_url }}"
+    href="{{ '/assets/interactive/rain/rain.css?v=t11' | relative_url }}"
   >
 </head>
 
@@ -30,12 +30,17 @@ sitemap: false
   >
     <div
       ref="scene"
+      v-if="ready"
       class="rain-scene"
       @pointerdown="onPointerDown"
       @pointermove="onPointerMove"
       @pointerleave="onPointerLeave"
       @pointerup="onPointerEnd"
       @pointercancel="onPointerEnd"
+      @touchstart.prevent="onTouchStart"
+      @touchmove.prevent="onTouchMove"
+      @touchend="onTouchEnd"
+      @touchcancel="onTouchEnd"
     >
       <!-- static1：普通静态底层 -->
 <img
@@ -87,6 +92,6 @@ sitemap: false
   </div>
 
   <script src="https://unpkg.com/vue@3/dist/vue.global.prod.js"></script>
-  <script src="{{ '/assets/interactive/rain/rain.js?v=t10' | relative_url }}"></script>
+  <script src="{{ '/assets/interactive/rain/rain.js?v=t11' | relative_url }}"></script>
 </body>
 </html>
