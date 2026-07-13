@@ -53,7 +53,7 @@
       ...leaf,
       id: `leaf-${index + 1}`,
       radius: 0.47,
-      maxRotation: 9.5,
+      maxRotation: 6.5,
     })),
   };
 
@@ -345,7 +345,7 @@
         const pointerImpact = this.distanceInfluence(leaf.anchorX, leaf.anchorY, leaf.radius);
         const horizontalOffset = this.clamp((this.pointer.x - leaf.anchorX) / leaf.radius, -1, 1);
         const shake = this.shakeValue(this.leafShakeStartedAt[leaf.id], leaf.originX);
-        const rotation = pointerImpact * leaf.maxRotation * horizontalOffset * leaf.direction + shake * 3.2;
+        const rotation = pointerImpact * leaf.maxRotation * horizontalOffset * leaf.direction + shake * 2.2;
 
         return {
           transformOrigin: `${leaf.originX}% ${leaf.originY}%`,
