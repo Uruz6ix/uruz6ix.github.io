@@ -15,6 +15,7 @@
   const assetUrl = filename =>
     `${rootPath}${useMobileAssets ? "mobile/" : ""}${filename}`;
   const activeCollisionPairs = new Set();
+  const alphaMasks = new Map();
 
   const CONFIG = {
     staticLayers: [assetUrl("static1.png"), assetUrl("static2.png")],
@@ -70,10 +71,11 @@
         rainFrameId: null,
         animationTime: 0,
         rainStartedAt: 0,
+        lastAnimationTime: 0,
         activePointerId: null,
         activeTouchId: null,
-        leafShakeStartedAt: {},
-        dropShakeStartedAt: {},
+        leafShakes: {},
+        dropShakes: {},
         reducedMotion: window.matchMedia("(prefers-reduced-motion: reduce)").matches,
       };
     },
@@ -105,16 +107,21 @@
           ...CONFIG.leaves.map(leaf => leaf.src),
           ...CONFIG.dropImages,
         ];
+        const images = new Map();
         for (const url of urls) {
-          await this.preloadImage(url);
+          const image = await this.preloadImage(url);
+          if (image) {
+            images.set(url, image);
+          }
         }
+        this.buildAlphaMasks(images);
       },
 
       preloadImage(url, attempt = 0) {
         return new Promise(resolve => {
           const image = new Image();
           image.decoding = "async";
-          image.onload = () => resolve();
+          image.onload = () => resolve(image);
           image.onerror = () => {
             if (attempt < 2) {
               window.setTimeout(
@@ -124,15 +131,48 @@
               return;
             }
             console.warn(`Rain asset could not be preloaded: ${url}`);
-            resolve();
+            resolve(null);
           };
           image.src = attempt ? `${url}?retry=${attempt}` : url;
+        });
+      },
+
+      buildAlphaMasks(images) {
+        images.forEach((image, url) => {
+          if (!CONFIG.dropImages.includes(url) && !CONFIG.leaves.some(leaf => leaf.src === url)) {
+            return;
+          }
+          const canvas = document.createElement("canvas");
+          const scale = Math.min(1, 320 / image.naturalWidth);
+          canvas.width = Math.max(1, Math.round(image.naturalWidth * scale));
+          canvas.height = Math.max(1, Math.round(image.naturalHeight * scale));
+          const context = canvas.getContext("2d", { willReadFrequently: true });
+          context.drawImage(image, 0, 0, canvas.width, canvas.height);
+          const pixels = context.getImageData(0, 0, canvas.width, canvas.height).data;
+          const candidates = [];
+
+          for (let y = 0; y < canvas.height; y += 10) {
+            for (let x = 0; x < canvas.width; x += 10) {
+              const alpha = pixels[(y * canvas.width + x) * 4 + 3];
+              if (alpha > 80 && CONFIG.dropImages.includes(url)) {
+                candidates.push({ x: (x + 0.5) / canvas.width, y: (y + 0.5) / canvas.height });
+              }
+            }
+          }
+
+          alphaMasks.set(url, {
+            width: canvas.width,
+            height: canvas.height,
+            pixels,
+            samples: candidates.filter((_, index) => index % Math.max(1, Math.ceil(candidates.length / 96)) === 0),
+          });
         });
       },
 
       startRain() {
         this.rainStartedAt = performance.now();
         const tick = now => {
+          this.advanceDrops(now);
           this.animationTime = now;
           this.updateCollisions(now);
           if (!this.reducedMotion) {
@@ -152,6 +192,9 @@
           fallDuration: 5800 + Math.random() * 7200,
           fallOffset: Math.random(),
           phase: Math.random() * Math.PI * 2,
+          offsetX: 0,
+          deflectVelocity: 0,
+          lastProgress: null,
         }));
       },
 
@@ -164,13 +207,38 @@
         return x * x * (3 - 2 * x);
       },
 
-      dropY(drop) {
+      dropProgress(drop) {
         if (this.reducedMotion) {
-          return 0.1 + drop.fallOffset * 0.8;
+          return drop.fallOffset;
         }
         const elapsed = (this.animationTime - this.rainStartedAt) / drop.fallDuration;
-        const progress = (elapsed + drop.fallOffset) % 1;
-        return -0.16 + progress * 1.34;
+        return (elapsed + drop.fallOffset) % 1;
+      },
+
+      dropY(drop) {
+        return -0.16 + this.dropProgress(drop) * 1.34;
+      },
+
+      dropX(drop) {
+        return drop.x + drop.offsetX;
+      },
+
+      advanceDrops(now) {
+        const elapsedSeconds = this.lastAnimationTime
+          ? (now - this.lastAnimationTime) / 1000
+          : 0;
+        this.lastAnimationTime = now;
+
+        for (const drop of this.drops) {
+          const progress = this.dropProgress(drop);
+          if (drop.lastProgress !== null && progress < drop.lastProgress) {
+            drop.offsetX = 0;
+            drop.deflectVelocity = 0;
+          }
+          drop.lastProgress = progress;
+          drop.offsetX = this.clamp(drop.offsetX + drop.deflectVelocity * elapsedSeconds, -0.08, 0.08);
+          drop.deflectVelocity *= Math.pow(0.06, elapsedSeconds);
+        }
       },
 
       dropVisibility(y) {
@@ -185,6 +253,42 @@
         return this.smoothStep(1 - Math.hypot(x - this.pointer.x, y - this.pointer.y) / radius);
       },
 
+      alphaAt(mask, x, y) {
+        if (!mask || x < 0 || x > 1 || y < 0 || y > 1) {
+          return 0;
+        }
+        const column = Math.min(mask.width - 1, Math.floor(x * mask.width));
+        const row = Math.min(mask.height - 1, Math.floor(y * mask.height));
+        return mask.pixels[(row * mask.width + column) * 4 + 3];
+      },
+
+      dropDisplaySize(drop) {
+        const mask = alphaMasks.get(drop.src);
+        const sceneWidth = this.$refs.scene?.clientWidth || 1;
+        const cssWidth = sceneWidth * (useMobileAssets ? 0.2 : 0.28);
+        const width = Math.min(110, Math.max(30, cssWidth)) / sceneWidth;
+        return { width, height: width * mask.height / mask.width };
+      },
+
+      findAlphaCollision(drop, y, leaf) {
+        const dropMask = alphaMasks.get(drop.src);
+        const leafMask = alphaMasks.get(leaf.src);
+        if (!dropMask?.samples.length || !leafMask) {
+          return null;
+        }
+
+        const { width, height } = this.dropDisplaySize(drop);
+        const x = this.dropX(drop);
+        for (const sample of dropMask.samples) {
+          const hitX = x + (sample.x - 0.5) * width;
+          const hitY = y + (sample.y - 0.5) * height;
+          if (this.alphaAt(leafMask, hitX, hitY) > 80) {
+            return { x: hitX, y: hitY };
+          }
+        }
+        return null;
+      },
+
       updateCollisions(now) {
         const currentPairs = new Set();
 
@@ -195,17 +299,24 @@
           }
 
           for (const leaf of this.leaves) {
-            const pair = `${drop.id}:${leaf.id}`;
-            const distance = Math.hypot(drop.x - leaf.anchorX, y - leaf.anchorY);
-            if (distance > 0.07) {
+            const hit = this.findAlphaCollision(drop, y, leaf);
+            if (!hit) {
               continue;
             }
 
+            const pair = `${drop.id}:${leaf.id}`;
             currentPairs.add(pair);
-            if (!activeCollisionPairs.has(pair)) {
-              this.leafShakeStartedAt[leaf.id] = now;
-              this.dropShakeStartedAt[drop.id] = now;
+            if (activeCollisionPairs.has(pair)) {
+              continue;
             }
+
+            const originX = leaf.originX / 100;
+            const originY = leaf.originY / 100;
+            const distance = Math.hypot(hit.x - originX, hit.y - originY);
+            const direction = hit.x >= this.dropX(drop) ? -1 : 1;
+            this.leafShakes[leaf.id] = { at: now, amplitude: 1.2 + distance * 16 };
+            this.dropShakes[drop.id] = { at: now, amplitude: 2.2 };
+            drop.deflectVelocity = direction * (0.015 + distance * 0.045);
           }
         }
 
@@ -213,18 +324,18 @@
         currentPairs.forEach(pair => activeCollisionPairs.add(pair));
       },
 
-      shakeValue(startedAt, phase) {
-        if (!startedAt) {
+      shakeValue(shake, phase) {
+        if (!shake) {
           return 0;
         }
 
-        const elapsed = this.animationTime - startedAt;
-        if (elapsed < 0 || elapsed > 220) {
+        const elapsed = this.animationTime - shake.at;
+        if (elapsed < 0 || elapsed > 560) {
           return 0;
         }
 
-        const progress = elapsed / 220;
-        return Math.sin(progress * Math.PI * 4 + phase) * (1 - progress);
+        const progress = elapsed / 560;
+        return Math.sin(progress * Math.PI * 3 + phase) * (1 - progress) * shake.amplitude;
       },
 
       portraitRevealStyle() {
@@ -325,27 +436,28 @@
       dropStyle(drop) {
         const effect = CONFIG.dropEffect;
         const y = this.dropY(drop);
-        const pointerImpact = this.distanceInfluence(drop.x, y, effect.radius);
-        const shake = this.shakeValue(this.dropShakeStartedAt[drop.id], drop.phase);
+        const x = this.dropX(drop);
+        const pointerImpact = this.distanceInfluence(x, y, effect.radius);
+        const shake = this.shakeValue(this.dropShakes[drop.id], drop.phase);
         const scale = drop.baseScale * (1 + pointerImpact * (effect.activeScale - 1));
         const opacity = (effect.baseOpacity + pointerImpact * (effect.activeOpacity - effect.baseOpacity)) * this.dropVisibility(y);
         const saturation = effect.baseSaturation + pointerImpact * (effect.activeSaturation - effect.baseSaturation);
         const brightness = effect.baseBrightness + pointerImpact * (effect.activeBrightness - effect.baseBrightness);
 
         return {
-          left: `${drop.x * 100}%`,
+          left: `${x * 100}%`,
           top: `${y * 100}%`,
           opacity,
           filter: `saturate(${saturation}) brightness(${brightness})`,
-          transform: `translate(-50%, -50%) rotate(${drop.rotation + shake * 3}deg) scale(${scale * (1 + Math.abs(shake) * 0.035)})`,
+          transform: `translate(-50%, -50%) rotate(${drop.rotation + shake}deg) scale(${scale * (1 + Math.abs(shake) * 0.02)})`,
         };
       },
 
       leafStyle(leaf) {
         const pointerImpact = this.distanceInfluence(leaf.anchorX, leaf.anchorY, leaf.radius);
         const horizontalOffset = this.clamp((this.pointer.x - leaf.anchorX) / leaf.radius, -1, 1);
-        const shake = this.shakeValue(this.leafShakeStartedAt[leaf.id], leaf.originX);
-        const rotation = pointerImpact * leaf.maxRotation * horizontalOffset * leaf.direction + shake * 2.2;
+        const shake = this.shakeValue(this.leafShakes[leaf.id], leaf.originX);
+        const rotation = pointerImpact * leaf.maxRotation * horizontalOffset * leaf.direction + shake;
 
         return {
           transformOrigin: `${leaf.originX}% ${leaf.originY}%`,

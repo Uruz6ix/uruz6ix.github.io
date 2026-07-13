@@ -35,32 +35,11 @@ body::before {
   pointer-events: none;
 
   background-image:
-    url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='280' height='280' viewBox='0 0 280 280'%3E%3Cfilter id='paperNoise'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='.72' numOctaves='4' seed='19' stitchTiles='stitch'/%3E%3CfeColorMatrix type='saturate' values='0'/%3E%3CfeComponentTransfer%3E%3CfeFuncA type='table' tableValues='0 .24'/%3E%3C/feComponentTransfer%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23paperNoise)'/%3E%3C/svg%3E"),
-    repeating-linear-gradient(
-      8deg,
-      transparent 0,
-      transparent 5px,
-      rgba(83, 67, 42, 0.018) 6px
-    ),
-    radial-gradient(
-      ellipse at 45% 35%,
-      rgba(255, 255, 255, 0.28),
-      rgba(191, 169, 132, 0.08) 75%,
-      rgba(122, 98, 64, 0.10)
-    );
-
-  background-size:
-    280px 280px,
-    9px 9px,
-    100% 100%;
-
-  background-repeat:
-    repeat,
-    repeat,
-    no-repeat;
-
-  mix-blend-mode: multiply;
-  opacity: 0.88;
+    url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='280' height='280' viewBox='0 0 280 280'%3E%3Cfilter id='paperNoise'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='.72' numOctaves='4' seed='19' stitchTiles='stitch'/%3E%3CfeColorMatrix type='saturate' values='0'/%3E%3CfeComponentTransfer%3E%3CfeFuncA type='table' tableValues='0 .13'/%3E%3C/feComponentTransfer%3E%3C/filter%3E%3Crect width='100%25' height='100%25' fill='white' filter='url(%23paperNoise)'/%3E%3C/svg%3E"),
+    repeating-linear-gradient(8deg, transparent 0, transparent 5px, rgba(83, 67, 42, 0.012) 6px);
+  background-size: 280px 280px, 9px 9px;
+  background-repeat: repeat, repeat;
+  opacity: 0.62;
 }
 
 #rain-app {
