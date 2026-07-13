@@ -133,15 +133,29 @@ body::before {
 .rain-static-portrait-clear {
   opacity: 0;
 
+  -webkit-mask-image: radial-gradient(
+    circle 25vmin at var(--reveal-x, 50%) var(--reveal-y, 50%),
+    rgba(0, 0, 0, 0.96) 0%,
+    rgba(0, 0, 0, 0.76) 14%,
+    rgba(0, 0, 0, 0.58) 38%,
+    rgba(0, 0, 0, 0.28) 65%,
+    rgba(0, 0, 0, 0.08) 86%,
+    transparent 100%
+  );
+  mask-image: radial-gradient(
+    circle 25vmin at var(--reveal-x, 50%) var(--reveal-y, 50%),
+    rgba(0, 0, 0, 0.96) 0%,
+    rgba(0, 0, 0, 0.76) 14%,
+    rgba(0, 0, 0, 0.58) 38%,
+    rgba(0, 0, 0, 0.28) 65%,
+    rgba(0, 0, 0, 0.08) 86%,
+    transparent 100%
+  );
   -webkit-mask-repeat: no-repeat;
   mask-repeat: no-repeat;
 
-  transition: opacity 450ms ease-in-out;
-
-  will-change:
-    opacity,
-    -webkit-mask-image,
-    mask-image;
+  transition: opacity 160ms ease-out;
+  will-change: opacity;
 }
 
 .rain-leaf {
@@ -194,6 +208,14 @@ body::before {
 }
 
 @media (max-width: 700px) {
+  .rain-scene {
+    width: calc(100dvh * 1445 / 1829);
+    height: 100dvh;
+    margin-left: 50%;
+    margin-right: 0;
+    transform: translateX(-50%);
+  }
+
   .rain-drop {
     width: 25.2%;
   }

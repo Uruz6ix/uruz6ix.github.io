@@ -77,44 +77,12 @@
       maxShift: 0,
     })),
   };
-function createPortraitBlob() {
-  const lobes = [
-    {
-      dx: 0,
-      dy: 0,
-      radius: 12.2 + Math.random() * 3.8,
-    },
-  ];
-
-  // 原来外围有 7 块，现在改成 4 块。
-  const surroundingCount = 4;
-
-  for (let i = 0; i < surroundingCount; i += 1) {
-    const angle =
-      (Math.PI * 2 * i) / surroundingCount +
-      (Math.random() - 0.5) * 0.9;
-
-    // 外围块离中心更近，避免拼成一个大范围。
-    const distance = 0.012 + Math.random() * 0.15;
-
-    lobes.push({
-      dx: Math.cos(angle) * distance,
-      dy: Math.sin(angle) * distance,
-      radius: 10.2 + Math.random() * 3.8,
-    });
-  }
-
-  return lobes;
-}
-
   createApp({
     data() {
   return {
     staticLayers: CONFIG.staticLayers,
     leaves: CONFIG.leaves,
     drops: [],
-
-    portraitBlob: createPortraitBlob(),
 
     pointer: {
       x: 0.5,
@@ -143,54 +111,23 @@ function createPortraitBlob() {
         return Math.min(Math.max(value, minimum), maximum);
       },
       portraitRevealStyle() {
-  const gradients = this.portraitBlob.map(lobe => {
-    const x = this.clamp(
-      this.pointer.x + lobe.dx,
-      0,
-      1
-    );
+        const edgeDistance = Math.min(
+          this.pointer.x,
+          1 - this.pointer.x,
+          this.pointer.y,
+          1 - this.pointer.y
+        );
 
-    const y = this.clamp(
-      this.pointer.y + lobe.dy,
-      0,
-      1
-    );
+        const opacity = this.pointer.active
+          ? 0.92 * this.smoothStep(edgeDistance / 0.08)
+          : 0;
 
-    return `
-      radial-gradient(
-        circle ${lobe.radius}vmin at ${x * 100}% ${y * 100}%,
-        rgba(0, 0, 0, 0.96) 0%,
-        rgba(0, 0, 0, 0.76) 14%,
-        rgba(0, 0, 0, 0.58) 38%,
-        rgba(0, 0, 0, 0.28) 65%,
-        rgba(0, 0, 0, 0.08) 86%,
-        transparent 100%
-      )
-    `;
-  }).join(",");
-
-  
-  const edgeDistance = Math.min(
-    this.pointer.x,
-    1 - this.pointer.x,
-    this.pointer.y,
-    1 - this.pointer.y
-  );
-
-  const edgeFade = this.smoothStep(
-    edgeDistance / 0.08
-  );
-
-  const opacity = this.pointer.active
-    ? 0.92 * edgeFade
-    : 0;
-
-  return {
-    opacity,
-    WebkitMaskImage: gradients,
-    maskImage: gradients,
-  };
-},
+        return {
+          opacity,
+          "--reveal-x": `${this.pointer.x * 100}%`,
+          "--reveal-y": `${this.pointer.y * 100}%`,
+        };
+      },
       smoothStep(value) {
         const x = this.clamp(value, 0, 1);
         return x * x * (3 - 2 * x);
