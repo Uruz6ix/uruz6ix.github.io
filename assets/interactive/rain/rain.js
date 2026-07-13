@@ -14,6 +14,7 @@
   const useMobileAssets = window.matchMedia("(max-width: 700px)").matches;
   const assetUrl = filename =>
     `${rootPath}${useMobileAssets ? "mobile/" : ""}${filename}`;
+  const activeCollisionPairs = new Set();
 
   const CONFIG = {
     staticLayers: [assetUrl("static1.png"), assetUrl("static2.png")],
@@ -71,6 +72,8 @@
         rainStartedAt: 0,
         activePointerId: null,
         activeTouchId: null,
+        leafShakeStartedAt: {},
+        dropShakeStartedAt: {},
         reducedMotion: window.matchMedia("(prefers-reduced-motion: reduce)").matches,
       };
     },
@@ -131,6 +134,7 @@
         this.rainStartedAt = performance.now();
         const tick = now => {
           this.animationTime = now;
+          this.updateCollisions(now);
           if (!this.reducedMotion) {
             this.rainFrameId = requestAnimationFrame(tick);
           }
@@ -181,21 +185,46 @@
         return this.smoothStep(1 - Math.hypot(x - this.pointer.x, y - this.pointer.y) / radius);
       },
 
-      collisionInfluence(x, y, targets, radius) {
-        return targets.reduce((impact, target) => {
-          const distance = Math.hypot(x - target.x, y - target.y);
-          return Math.max(impact, this.smoothStep(1 - distance / radius));
-        }, 0);
+      updateCollisions(now) {
+        const currentPairs = new Set();
+
+        for (const drop of this.drops) {
+          const y = this.dropY(drop);
+          if (y < 0 || y > 1) {
+            continue;
+          }
+
+          for (const leaf of this.leaves) {
+            const pair = `${drop.id}:${leaf.id}`;
+            const distance = Math.hypot(drop.x - leaf.anchorX, y - leaf.anchorY);
+            if (distance > 0.07) {
+              continue;
+            }
+
+            currentPairs.add(pair);
+            if (!activeCollisionPairs.has(pair)) {
+              this.leafShakeStartedAt[leaf.id] = now;
+              this.dropShakeStartedAt[drop.id] = now;
+            }
+          }
+        }
+
+        activeCollisionPairs.clear();
+        currentPairs.forEach(pair => activeCollisionPairs.add(pair));
       },
 
-      leafCollision(leaf) {
-        const drops = this.drops.map(drop => ({ x: drop.x, y: this.dropY(drop) }));
-        return this.collisionInfluence(leaf.anchorX, leaf.anchorY, drops, 0.085);
-      },
+      shakeValue(startedAt, phase) {
+        if (!startedAt) {
+          return 0;
+        }
 
-      dropCollision(drop, y) {
-        const leaves = this.leaves.map(leaf => ({ x: leaf.anchorX, y: leaf.anchorY }));
-        return this.collisionInfluence(drop.x, y, leaves, 0.085);
+        const elapsed = this.animationTime - startedAt;
+        if (elapsed < 0 || elapsed > 220) {
+          return 0;
+        }
+
+        const progress = elapsed / 220;
+        return Math.sin(progress * Math.PI * 4 + phase) * (1 - progress);
       },
 
       portraitRevealStyle() {
@@ -297,8 +326,7 @@
         const effect = CONFIG.dropEffect;
         const y = this.dropY(drop);
         const pointerImpact = this.distanceInfluence(drop.x, y, effect.radius);
-        const collision = this.dropCollision(drop, y);
-        const wave = Math.sin(this.animationTime / 35 + drop.phase) * collision;
+        const shake = this.shakeValue(this.dropShakeStartedAt[drop.id], drop.phase);
         const scale = drop.baseScale * (1 + pointerImpact * (effect.activeScale - 1));
         const opacity = (effect.baseOpacity + pointerImpact * (effect.activeOpacity - effect.baseOpacity)) * this.dropVisibility(y);
         const saturation = effect.baseSaturation + pointerImpact * (effect.activeSaturation - effect.baseSaturation);
@@ -309,20 +337,19 @@
           top: `${y * 100}%`,
           opacity,
           filter: `saturate(${saturation}) brightness(${brightness})`,
-          transform: `translate(calc(-50% + ${wave * 2}px), calc(-50% + ${Math.abs(wave) * 1.5}px)) rotate(${drop.rotation + wave * 3}deg) scale(${scale})`,
+          transform: `translate(-50%, -50%) rotate(${drop.rotation + shake * 3}deg) scale(${scale * (1 + Math.abs(shake) * 0.035)})`,
         };
       },
 
       leafStyle(leaf) {
         const pointerImpact = this.distanceInfluence(leaf.anchorX, leaf.anchorY, leaf.radius);
         const horizontalOffset = this.clamp((this.pointer.x - leaf.anchorX) / leaf.radius, -1, 1);
-        const collision = this.leafCollision(leaf);
-        const wave = Math.sin(this.animationTime / 35 + leaf.originX) * collision;
-        const rotation = pointerImpact * leaf.maxRotation * horizontalOffset * leaf.direction + wave * 3.2;
+        const shake = this.shakeValue(this.leafShakeStartedAt[leaf.id], leaf.originX);
+        const rotation = pointerImpact * leaf.maxRotation * horizontalOffset * leaf.direction + shake * 3.2;
 
         return {
           transformOrigin: `${leaf.originX}% ${leaf.originY}%`,
-          transform: `translate(${wave * 1.5}px, ${Math.abs(wave) * 1.8}px) rotate(${rotation}deg)`,
+          transform: `rotate(${rotation}deg)`,
         };
       },
     },
