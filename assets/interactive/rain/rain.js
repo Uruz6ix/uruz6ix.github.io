@@ -78,7 +78,7 @@
         activeTouchId: null,
         leafShakes: {},
         dropShakes: {},
-        nextCollisionCheckAt: 0,
+        leafCollisionCheckAt: {},
         reducedMotion: window.matchMedia("(prefers-reduced-motion: reduce)").matches,
       };
     },
@@ -177,15 +177,15 @@
         this.drops.forEach(drop => {
           drop.startedAt = this.rainStartedAt;
         });
-        this.nextCollisionCheckAt = this.rainStartedAt;
+        this.leaves.forEach((leaf, index) => {
+          this.leafCollisionCheckAt[leaf.id] = this.rainStartedAt +
+            index * CONFIG.collisionCheckInterval / this.leaves.length;
+        });
         const tick = now => {
           this.animationTime = now;
           this.addDropsOverTime(now);
           this.advanceDrops(now);
-          if (now >= this.nextCollisionCheckAt) {
-            this.updateCollisions(now);
-            this.nextCollisionCheckAt = now + CONFIG.collisionCheckInterval;
-          }
+          this.updateCollisions(now);
           if (!this.reducedMotion) {
             this.rainFrameId = requestAnimationFrame(tick);
           }
@@ -317,16 +317,20 @@
       },
 
       updateCollisions(now) {
-        const collidedLeaves = new Set();
-
-        for (const drop of this.drops) {
-          const y = this.dropY(drop);
-          if (y < 0 || y > 1) {
+        for (const leaf of this.leaves) {
+          const nextCheck = this.leafCollisionCheckAt[leaf.id] ?? now;
+          if (now < nextCheck) {
             continue;
           }
 
-          for (const leaf of this.leaves) {
-            if (collidedLeaves.has(leaf.id)) {
+          this.leafCollisionCheckAt[leaf.id] = now + CONFIG.collisionCheckInterval;
+          if (this.distanceInfluence(leaf.anchorX, leaf.anchorY, leaf.radius) > 0.02) {
+            continue;
+          }
+
+          for (const drop of this.drops) {
+            const y = this.dropY(drop);
+            if (y < 0 || y > 1) {
               continue;
             }
 
@@ -339,15 +343,13 @@
             const originY = leaf.originY / 100;
             const distance = Math.hypot(hit.x - originX, hit.y - originY);
             const direction = hit.x >= this.dropX(drop) ? -1 : 1;
-            collidedLeaves.add(leaf.id);
             this.leafShakes[leaf.id] = { at: now, amplitude: 1.2 + distance * 16 };
             this.dropShakes[drop.id] = { at: now, amplitude: 2.2 };
             drop.deflectVelocity = direction * (0.015 + distance * 0.045);
+            break;
           }
         }
-
       },
-
       shakeValue(shake, phase) {
         if (!shake) {
           return 0;
@@ -480,7 +482,9 @@
       leafStyle(leaf) {
         const pointerImpact = this.distanceInfluence(leaf.anchorX, leaf.anchorY, leaf.radius);
         const horizontalOffset = this.clamp((this.pointer.x - leaf.anchorX) / leaf.radius, -1, 1);
-        const shake = this.shakeValue(this.leafShakes[leaf.id], leaf.originX);
+        const shake = pointerImpact > 0.02
+          ? 0
+          : this.shakeValue(this.leafShakes[leaf.id], leaf.originX);
         const rotation = pointerImpact * leaf.maxRotation * horizontalOffset * leaf.direction + shake;
 
         return {
