@@ -14,7 +14,6 @@
   const useMobileAssets = window.matchMedia("(max-width: 700px)").matches;
   const assetUrl = filename =>
     `${rootPath}${useMobileAssets ? "mobile/" : ""}${filename}`;
-  const activeCollisionPairs = new Set();
   const alphaMasks = new Map();
 
   const CONFIG = {
@@ -26,6 +25,9 @@
       assetUrl("drop4.png"),
     ],
     dropCount: useMobileAssets ? 18 : 28,
+    maxDropMultiplier: 5,
+    dropGrowthInterval: 12000,
+    collisionCheckInterval: 3000,
     dropEffect: {
       radius: 0.4,
       baseOpacity: 0.48,
@@ -76,6 +78,7 @@
         activeTouchId: null,
         leafShakes: {},
         dropShakes: {},
+        nextCollisionCheckAt: 0,
         reducedMotion: window.matchMedia("(prefers-reduced-motion: reduce)").matches,
       };
     },
@@ -171,10 +174,18 @@
 
       startRain() {
         this.rainStartedAt = performance.now();
+        this.drops.forEach(drop => {
+          drop.startedAt = this.rainStartedAt;
+        });
+        this.nextCollisionCheckAt = this.rainStartedAt;
         const tick = now => {
-          this.advanceDrops(now);
           this.animationTime = now;
-          this.updateCollisions(now);
+          this.addDropsOverTime(now);
+          this.advanceDrops(now);
+          if (now >= this.nextCollisionCheckAt) {
+            this.updateCollisions(now);
+            this.nextCollisionCheckAt = now + CONFIG.collisionCheckInterval;
+          }
           if (!this.reducedMotion) {
             this.rainFrameId = requestAnimationFrame(tick);
           }
@@ -182,20 +193,36 @@
         tick(this.rainStartedAt);
       },
 
-      createFallingDrops() {
-        return Array.from({ length: CONFIG.dropCount }, (_, index) => ({
-          id: `drop-${index}`,
+      createFallingDrops(count = CONFIG.dropCount, startedAt = null, firstId = 0) {
+        return Array.from({ length: count }, (_, index) => ({
+          id: `drop-${firstId + index}`,
           src: CONFIG.dropImages[Math.floor(Math.random() * CONFIG.dropImages.length)],
           x: 0.02 + Math.random() * 0.96,
           rotation: -12 + Math.random() * 24,
           baseScale: 0.46 + Math.random() * 0.42,
           fallDuration: 5800 + Math.random() * 7200,
-          fallOffset: Math.random(),
+          fallOffset: startedAt === null ? Math.random() : 0,
+          startedAt,
           phase: Math.random() * Math.PI * 2,
           offsetX: 0,
           deflectVelocity: 0,
           lastProgress: null,
         }));
+      },
+
+      addDropsOverTime(now) {
+        if (this.reducedMotion) {
+          return;
+        }
+
+        const stages = Math.floor((now - this.rainStartedAt) / CONFIG.dropGrowthInterval);
+        const maximum = CONFIG.dropCount * CONFIG.maxDropMultiplier;
+        const target = Math.min(maximum, CONFIG.dropCount * (1 + stages));
+        if (target <= this.drops.length) {
+          return;
+        }
+
+        this.drops.push(...this.createFallingDrops(target - this.drops.length, now, this.drops.length));
       },
 
       clamp(value, minimum, maximum) {
@@ -211,7 +238,7 @@
         if (this.reducedMotion) {
           return drop.fallOffset;
         }
-        const elapsed = (this.animationTime - this.rainStartedAt) / drop.fallDuration;
+        const elapsed = (this.animationTime - (drop.startedAt ?? this.rainStartedAt)) / drop.fallDuration;
         return (elapsed + drop.fallOffset) % 1;
       },
 
@@ -290,7 +317,7 @@
       },
 
       updateCollisions(now) {
-        const currentPairs = new Set();
+        const collidedLeaves = new Set();
 
         for (const drop of this.drops) {
           const y = this.dropY(drop);
@@ -299,14 +326,12 @@
           }
 
           for (const leaf of this.leaves) {
-            const hit = this.findAlphaCollision(drop, y, leaf);
-            if (!hit) {
+            if (collidedLeaves.has(leaf.id)) {
               continue;
             }
 
-            const pair = `${drop.id}:${leaf.id}`;
-            currentPairs.add(pair);
-            if (activeCollisionPairs.has(pair)) {
+            const hit = this.findAlphaCollision(drop, y, leaf);
+            if (!hit) {
               continue;
             }
 
@@ -314,14 +339,13 @@
             const originY = leaf.originY / 100;
             const distance = Math.hypot(hit.x - originX, hit.y - originY);
             const direction = hit.x >= this.dropX(drop) ? -1 : 1;
+            collidedLeaves.add(leaf.id);
             this.leafShakes[leaf.id] = { at: now, amplitude: 1.2 + distance * 16 };
             this.dropShakes[drop.id] = { at: now, amplitude: 2.2 };
             drop.deflectVelocity = direction * (0.015 + distance * 0.045);
           }
         }
 
-        activeCollisionPairs.clear();
-        currentPairs.forEach(pair => activeCollisionPairs.add(pair));
       },
 
       shakeValue(shake, phase) {
