@@ -35,32 +35,11 @@ body::before {
   pointer-events: none;
 
   background-image:
-    url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='280' height='280' viewBox='0 0 280 280'%3E%3Cfilter id='paperNoise'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='.72' numOctaves='4' seed='19' stitchTiles='stitch'/%3E%3CfeColorMatrix type='saturate' values='0'/%3E%3CfeComponentTransfer%3E%3CfeFuncA type='table' tableValues='0 .24'/%3E%3C/feComponentTransfer%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23paperNoise)'/%3E%3C/svg%3E"),
-    repeating-linear-gradient(
-      8deg,
-      transparent 0,
-      transparent 5px,
-      rgba(83, 67, 42, 0.018) 6px
-    ),
-    radial-gradient(
-      ellipse at 45% 35%,
-      rgba(255, 255, 255, 0.28),
-      rgba(191, 169, 132, 0.08) 75%,
-      rgba(122, 98, 64, 0.10)
-    );
-
-  background-size:
-    280px 280px,
-    9px 9px,
-    100% 100%;
-
-  background-repeat:
-    repeat,
-    repeat,
-    no-repeat;
-
-  mix-blend-mode: multiply;
-  opacity: 0.88;
+    url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='280' height='280' viewBox='0 0 280 280'%3E%3Cfilter id='paperNoise'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='.72' numOctaves='4' seed='19' stitchTiles='stitch'/%3E%3CfeColorMatrix type='saturate' values='0'/%3E%3CfeComponentTransfer%3E%3CfeFuncA type='table' tableValues='0 .13'/%3E%3C/feComponentTransfer%3E%3C/filter%3E%3Crect width='100%25' height='100%25' fill='white' filter='url(%23paperNoise)'/%3E%3C/svg%3E"),
+    repeating-linear-gradient(8deg, transparent 0, transparent 5px, rgba(83, 67, 42, 0.012) 6px);
+  background-size: 280px 280px, 9px 9px;
+  background-repeat: repeat, repeat;
+  opacity: 0.62;
 }
 
 #rain-app {
@@ -82,15 +61,15 @@ body::before {
    * 这里要改成 static1.png / static2.png 的实际宽高比。
    * 例如图片是 3000 × 4000，则使用 3 / 4。
    */
-  height: min(105vh, 1800px);
-  aspect-ratio: 5 / 6;
+  width: min(100vw, calc(100dvh * 1445 / 1829), calc(1800px * 1445 / 1829));
+  aspect-ratio: 1445 / 1829;
 
   margin: 0 auto;
   overflow: hidden;
   isolation: isolate;
 
   user-select: none;
-  touch-action: pan-y;
+  touch-action: none;
 }
 
 .rain-layer {
@@ -133,78 +112,70 @@ body::before {
 .rain-static-portrait-clear {
   opacity: 0;
 
+  -webkit-mask-image: radial-gradient(
+    circle 25vmin at var(--reveal-x, 50%) var(--reveal-y, 50%),
+    rgba(0, 0, 0, 0.96) 0%,
+    rgba(0, 0, 0, 0.76) 14%,
+    rgba(0, 0, 0, 0.58) 38%,
+    rgba(0, 0, 0, 0.28) 65%,
+    rgba(0, 0, 0, 0.08) 86%,
+    transparent 100%
+  );
+  mask-image: radial-gradient(
+    circle 25vmin at var(--reveal-x, 50%) var(--reveal-y, 50%),
+    rgba(0, 0, 0, 0.96) 0%,
+    rgba(0, 0, 0, 0.76) 14%,
+    rgba(0, 0, 0, 0.58) 38%,
+    rgba(0, 0, 0, 0.28) 65%,
+    rgba(0, 0, 0, 0.08) 86%,
+    transparent 100%
+  );
   -webkit-mask-repeat: no-repeat;
   mask-repeat: no-repeat;
 
-  transition: opacity 450ms ease-in-out;
-
-  will-change:
-    opacity,
-    -webkit-mask-image,
-    mask-image;
+  transition: opacity 160ms ease-out;
+  will-change: opacity;
 }
 
 .rain-leaf {
   z-index: 3;
-
-  transition:
-    transform 180ms cubic-bezier(0.22, 0.61, 0.36, 1);
-
-  will-change: transform;
 }
 
 .rain-drops {
   position: absolute;
   inset: 0;
   z-index: 4;
-
   overflow: hidden;
   pointer-events: none;
 }
 
 .rain-drop {
   position: absolute;
-
-  width: 60%;
-  min-width: 40px;
-  max-width: 150px;
+  width: 28%;
+  min-width: 30px;
+  max-width: 110px;
   height: auto;
-
   pointer-events: none;
   user-select: none;
   transform-origin: center;
-
-  transition:
-    opacity 110ms linear,
-    filter 110ms linear,
-    transform 110ms linear;
-
-  will-change: opacity, filter, transform;
-}
-
-@media (hover: none), (pointer: coarse) {
-  .rain-leaf {
-    transform: none !important;
-  }
 }
 
 @media (prefers-reduced-motion: reduce) {
-  .rain-leaf,
-  .rain-drop {
+  .rain-static-portrait-clear {
     transition: none;
-  }
-
-  .rain-leaf {
-    transform: none !important;
   }
 }
 
 @media (max-width: 700px) {
   .rain-scene {
-    width: 100%;
+    width: calc(100dvh * 1445 / 1829);
+    height: 100dvh;
+    margin-left: 50%;
+    margin-right: 0;
+    transform: translateX(-50%);
   }
 
   .rain-drop {
-    width: 25.2%;
+    width: 20%;
   }
 }
