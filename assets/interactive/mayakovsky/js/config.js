@@ -98,8 +98,6 @@ export const CONFIG = {
     palette: [
       "#f4d193",
       "#3895e0",
-      "#9a6ede",
-      "#44e3b1",
     ],
   },
 

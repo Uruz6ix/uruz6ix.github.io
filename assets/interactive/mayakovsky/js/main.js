@@ -390,7 +390,7 @@ function animate(now) {
       0
   ) {
     state.simulation.step(
-      accumulatedTime / 16.667,
+      accumulatedTime / 16.667 *6,
       HUMIDITY
     );
 
