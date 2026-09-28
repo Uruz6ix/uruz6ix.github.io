@@ -1,0 +1,21 @@
+---
+layout: null
+permalink: /watercolor/en/
+title: Watercolor Simulation
+---
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <meta name="theme-color" content="#d3d7de">
+  <meta name="description" content="A watercolor simulator with continuous brush strokes, pigment mixing, diffusion and settling.">
+  <title>Watercolor Simulation</title>
+  <link rel="stylesheet" href="{{ '/assets/interactive/watercolor/style.css' | relative_url }}">
+</head>
+<body>
+  {% include watercolor-app.html %}
+  <noscript><p class="no-script">Enable JavaScript to use watercolor simulation.</p></noscript>
+  <script type="module" src="{{ '/assets/interactive/watercolor/js/main.js' | relative_url }}"></script>
+</body>
+</html>

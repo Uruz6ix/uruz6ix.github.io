@@ -27,6 +27,9 @@ gallery2021:
       image_path: "/assets/Painting2021/lookingatu01.jpg"
 ---
 # Painting
+
+[水彩模拟器]({{ '/watercolor/' | relative_url }}) / [watercolor simulation]({{ '/watercolor/en/' | relative_url }})
+
 ## Muridae with Orange Skin 2026
 For several months in the past year, I was deeply engrossed in taxonomy. The idea that birds are dinosaurs and humans are humans but also some kind of small rat from tens of millions of years ago brought me great comfort.
 Long before that, I told someone that humans are just small animals with an extra five percent of wisdom, and this five percent of wisdom is the source of all misfortune - at the moment when I can't be human, can I just be an orange peel rat?

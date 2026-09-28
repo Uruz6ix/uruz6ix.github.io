@@ -1,0 +1,103 @@
+<div class="studio" id="watercolor-app">
+  <aside class="panel" aria-label="水彩工具与参数" data-i18n-aria="toolsPanel">
+    <header class="panel-header">
+      <a class="back-link" href="{{ '/' | relative_url }}" aria-label="首页" data-i18n-aria="home">←</a>
+      <h1 class="wordmark" data-i18n="name">水彩模拟器</h1>
+      <a id="language" class="language-link" href="{{ '/watercolor/en/' | relative_url }}" lang="en" aria-label="English" data-zh-url="{{ '/watercolor/' | relative_url }}" data-en-url="{{ '/watercolor/en/' | relative_url }}">EN</a>
+    </header>
+
+    <section class="control-section" aria-labelledby="color-heading">
+      <h2 id="color-heading" data-i18n="color">颜色</h2>
+      <div class="color-picker">
+        <canvas id="color-plane" width="384" height="384" tabindex="0" role="img" aria-label="饱和度与明度" data-i18n-aria="colorPlane"></canvas>
+        <input id="hue" class="hue-strip" type="range" min="0" max="359" value="206" aria-label="色相" data-i18n-aria="hue">
+      </div>
+      <div class="color-code">
+        <span id="color-preview" aria-hidden="true"></span>
+        <input id="color" type="text" value="#3577AA" maxlength="7" spellcheck="false" autocomplete="off" aria-label="HEX 颜色" data-i18n-aria="hex">
+      </div>
+      <div class="rgb-control">
+        <label for="red">R</label><input id="red" type="range" min="0" max="255" value="53" aria-label="红色分量" data-i18n-aria="red">
+        <input id="red-value" type="number" min="0" max="255" value="53" aria-label="红色数值" data-i18n-aria="redValue">
+      </div>
+      <div class="rgb-control">
+        <label for="green">G</label><input id="green" type="range" min="0" max="255" value="119" aria-label="绿色分量" data-i18n-aria="green">
+        <input id="green-value" type="number" min="0" max="255" value="119" aria-label="绿色数值" data-i18n-aria="greenValue">
+      </div>
+      <div class="rgb-control">
+        <label for="blue">B</label><input id="blue" type="range" min="0" max="255" value="170" aria-label="蓝色分量" data-i18n-aria="blue">
+        <input id="blue-value" type="number" min="0" max="255" value="170" aria-label="蓝色数值" data-i18n-aria="blueValue">
+      </div>
+    </section>
+
+    <section class="control-section" aria-labelledby="brush-heading">
+      <h2 id="brush-heading" data-i18n="brush">笔刷</h2>
+      <div class="tool-switch" aria-label="绘画工具" data-i18n-aria="tools">
+        <button id="paint-tool" type="button" aria-pressed="true" data-i18n="paint">画笔</button>
+        <button id="water-tool" type="button" aria-pressed="false" data-i18n="waterTool">清水</button>
+      </div>
+      <div class="range-control">
+        <label for="size"><span data-i18n="size">笔刷大小</span> <output id="size-value" for="size">36 px</output></label>
+        <input id="size" type="range" min="6" max="120" step="1" value="36">
+      </div>
+      <div class="range-control">
+        <label for="pigment"><span data-i18n="pigment">颜料浓度</span> <output id="pigment-value" for="pigment">65%</output></label>
+        <input id="pigment" type="range" min="5" max="100" value="65">
+      </div>
+      <div class="range-control">
+        <label for="water"><span data-i18n="water">笔含水量</span> <output id="water-value" for="water">65%</output></label>
+        <input id="water" type="range" min="0" max="100" value="65">
+      </div>
+    </section>
+
+    <section class="control-section" aria-labelledby="simulation-heading">
+      <h2 id="simulation-heading" data-i18n="paper">纸面</h2>
+      <div class="range-control">
+        <label for="diffusion"><span data-i18n="diffusion">扩散强度</span> <output id="diffusion-value" for="diffusion">70%</output></label>
+        <input id="diffusion" type="range" min="0" max="200" value="70">
+      </div>
+      <div class="range-control">
+        <label for="sediment"><span data-i18n="sediment">沉淀速度</span> <output id="sediment-value" for="sediment">100%</output></label>
+        <input id="sediment" type="range" min="0" max="300" value="100">
+      </div>
+      <details class="advanced">
+        <summary><span data-i18n="more">更多</span> <span aria-hidden="true">+</span></summary>
+        <div class="range-control">
+          <label for="edges"><span data-i18n="edges">边缘积色</span> <output id="edges-value" for="edges">75%</output></label>
+          <input id="edges" type="range" min="0" max="200" value="75">
+        </div>
+        <div class="range-control">
+          <label for="drying"><span data-i18n="drying">干燥速度</span> <output id="drying-value" for="drying">100%</output></label>
+          <input id="drying" type="range" min="0" max="300" value="100">
+        </div>
+        <div class="range-control">
+          <label for="humidity"><span data-i18n="humidity">环境湿度</span> <output id="humidity-value" for="humidity">60%</output></label>
+          <input id="humidity" type="range" min="0" max="95" value="60">
+        </div>
+      </details>
+      <button id="reset-settings" class="text-button" type="button" data-i18n="reset">重置</button>
+    </section>
+  </aside>
+
+  <main class="workspace">
+    <div class="toolbar" role="group" aria-label="作品操作" data-i18n-aria="actions">
+      <div class="document-label"><span class="live-dot" aria-hidden="true"></span><span class="document-size">1200 × 800</span></div>
+      <div class="toolbar-actions">
+        <button id="pause" type="button" aria-pressed="false" data-i18n="pause">暂停</button>
+        <button id="dry" type="button" data-i18n="dry">晾干</button>
+        <button id="discard" type="button" data-i18n="discard">丢弃</button>
+        <button id="save" class="primary-button" type="button"><span data-i18n="save">导出 PNG</span> <span aria-hidden="true">↗</span></button>
+        <a id="export-link" class="download-link" aria-label="下载 PNG" title="下载 PNG" data-i18n-aria="download" data-i18n-title="download" hidden>↓</a>
+      </div>
+    </div>
+
+    <div class="paper-area" id="paper-area">
+      <div class="paper" id="paper">
+        <canvas id="paint-canvas" width="1200" height="800" tabindex="0" aria-label="水彩画纸" data-i18n-aria="canvas"></canvas>
+        <div id="brush-cursor" class="brush-cursor" aria-hidden="true" hidden></div>
+      </div>
+    </div>
+
+    <p id="error" class="error-message" role="alert" hidden></p>
+  </main>
+</div>

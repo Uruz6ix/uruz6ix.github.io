@@ -3,5 +3,7 @@ main:
     url: /
   - title: Artworks
     url: /artworks
+  - title: 水彩模拟器
+    url: /watercolor/
   - title: Researches
     url: /researches

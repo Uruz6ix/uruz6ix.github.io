@@ -1,0 +1,21 @@
+---
+layout: null
+permalink: /watercolor/
+title: 水彩模拟器
+---
+<!doctype html>
+<html lang="zh-CN">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <meta name="theme-color" content="#d3d7de">
+  <meta name="description" content="自由绘画的交互水彩模拟器：连续笔迹、颜料混合、扩散与沉淀。">
+  <title>水彩模拟器</title>
+  <link rel="stylesheet" href="{{ '/assets/interactive/watercolor/style.css' | relative_url }}">
+</head>
+<body>
+  {% include watercolor-app.html %}
+  <noscript><p class="no-script">请启用 JavaScript 来使用水彩模拟器。</p></noscript>
+  <script type="module" src="{{ '/assets/interactive/watercolor/js/main.js' | relative_url }}"></script>
+</body>
+</html>
