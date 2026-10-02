@@ -7,6 +7,10 @@ const messages = {
     paper: "纸面", diffusion: "扩散强度", sediment: "沉淀速度", more: "更多", edges: "边缘积色", drying: "干燥速度", humidity: "环境湿度",
     reset: "重置", actions: "作品操作", pause: "暂停", resume: "继续", dry: "晾干", discard: "丢弃", save: "导出 PNG", download: "下载 PNG",
     canvas: "水彩画纸", exportError: "导出失败", initError: "画纸初始化失败",
+    palette: "试色与预设", swatch: "试色", swatchCanvas: "试色画板", myPresets: "我的预设", clearSwatch: "清空",
+    emptyPresets: "暂无预设", collapse: "收起", expand: "展开", closePresetDetails: "关闭参数详情", deletePreset: "删除",
+    waterShort: "水", pigmentShort: "浓度",
+    paperSize: "纸张尺寸", paperSizeLocked: "纸张有笔迹", paperWidth: "宽度", paperHeight: "高度", close: "关闭", cancel: "取消", apply: "应用",
   },
   en: {
     name: "Watercolor Simulation", description: "A watercolor simulator with continuous brush strokes, pigment mixing, diffusion and settling.",
@@ -16,6 +20,10 @@ const messages = {
     paper: "Paper", diffusion: "Diffusion", sediment: "Settling", more: "More", edges: "Edge pooling", drying: "Drying rate", humidity: "Humidity",
     reset: "Reset", actions: "Painting actions", pause: "Pause", resume: "Resume", dry: "Dry", discard: "Discard", save: "Export PNG", download: "Download PNG",
     canvas: "Watercolor paper", exportError: "Export failed", initError: "Unable to initialize the paper",
+    palette: "Swatches and presets", swatch: "Swatch", swatchCanvas: "Swatch board", myPresets: "My presets", clearSwatch: "Clear",
+    emptyPresets: "No presets yet", collapse: "Collapse", expand: "Expand", closePresetDetails: "Close preset details", deletePreset: "Delete",
+    waterShort: "Water", pigmentShort: "Pigment",
+    paperSize: "Paper size", paperSizeLocked: "Paper has brush strokes", paperWidth: "Width", paperHeight: "Height", close: "Close", cancel: "Cancel", apply: "Apply",
   },
 };
 

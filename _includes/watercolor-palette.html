@@ -1,0 +1,37 @@
+<section class="palette-deck" aria-label="试色与预设" data-i18n-aria="palette">
+  <div class="palette-content">
+    <section class="trial-section" aria-labelledby="trial-heading">
+      <header class="library-heading">
+        <h2 id="trial-heading" data-i18n="swatch">试色</h2>
+        <button id="trial-clear" class="board-reset" type="button" data-i18n="clearSwatch">清空</button>
+      </header>
+      <div id="trial-board" class="trial-board">
+        <div class="trial-paper">
+          <canvas id="trial-canvas" width="600" height="120" tabindex="0" aria-label="试色画板" data-i18n-aria="swatchCanvas"></canvas>
+          <div id="trial-cursor" class="brush-cursor" aria-hidden="true" hidden></div>
+        </div>
+        <div class="trial-footer">
+          <div class="trial-settings">
+            <div class="trial-color"><span id="trial-color-dot" aria-hidden="true"></span><strong id="trial-hex">#3577AA</strong><span id="trial-tool"></span></div>
+            <div class="trial-parameter-line"><span id="trial-size">36 px</span><span id="trial-water">水 65%</span><span id="trial-pigment">浓度 65%</span></div>
+            <div class="trial-parameter-line"><span id="trial-diffusion">扩散 70%</span><span id="trial-sediment">沉淀 100%</span></div>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <section class="preset-library" aria-labelledby="presets-heading">
+      <header class="library-heading">
+        <h2 id="presets-heading" data-i18n="myPresets">我的预设</h2><span id="preset-count" class="preset-count">0</span>
+        <button id="palette-collapse" class="palette-collapse" type="button" aria-expanded="true" aria-controls="trial-board preset-cards preset-inspector"><span data-i18n="collapse">收起</span><span class="collapse-chevron" aria-hidden="true">⌃</span></button>
+      </header>
+      <div id="preset-cards" class="preset-cards" role="group" aria-label="我的预设" data-i18n-aria="myPresets"></div>
+    </section>
+  </div>
+
+  <div id="preset-inspector" class="preset-inspector" hidden>
+    <div class="inspector-title"><span class="inspector-color" aria-hidden="true"></span><code id="inspector-hex"></code></div>
+    <dl id="inspector-settings" class="settings-grid"></dl>
+    <div class="inspector-actions"><button id="preset-delete" type="button" data-i18n="deletePreset">删除</button><button id="inspector-close" class="inspector-close" type="button" aria-label="关闭参数详情" data-i18n-aria="closePresetDetails">×</button></div>
+  </div>
+</section>

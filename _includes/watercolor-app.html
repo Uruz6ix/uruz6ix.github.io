@@ -81,7 +81,7 @@
 
   <main class="workspace">
     <div class="toolbar" role="group" aria-label="作品操作" data-i18n-aria="actions">
-      <div class="document-label"><span class="live-dot" aria-hidden="true"></span><span class="document-size">1200 × 800</span></div>
+      <div class="document-label"><span class="live-dot" aria-hidden="true"></span><button id="paper-size" class="document-size" type="button" aria-label="纸张尺寸" data-i18n-aria="paperSize" aria-haspopup="dialog"><span id="paper-dimensions">1200 × 800</span><span aria-hidden="true">⌄</span></button></div>
       <div class="toolbar-actions">
         <button id="pause" type="button" aria-pressed="false" data-i18n="pause">暂停</button>
         <button id="dry" type="button" data-i18n="dry">晾干</button>
@@ -90,6 +90,8 @@
         <a id="export-link" class="download-link" aria-label="下载 PNG" title="下载 PNG" data-i18n-aria="download" data-i18n-title="download" hidden>↓</a>
       </div>
     </div>
+
+    {% include watercolor-palette.html %}
 
     <div class="paper-area" id="paper-area">
       <div class="paper" id="paper">
@@ -101,3 +103,14 @@
     <p id="error" class="error-message" role="alert" hidden></p>
   </main>
 </div>
+
+<dialog id="paper-size-dialog" class="paper-size-dialog" aria-labelledby="paper-size-heading">
+  <form id="paper-size-form">
+    <header class="paper-size-heading"><h2 id="paper-size-heading" data-i18n="paperSize">纸张尺寸</h2><button id="paper-size-close" type="button" aria-label="关闭" data-i18n-aria="close">×</button></header>
+    <div class="paper-size-fields">
+      <label for="paper-width"><span data-i18n="paperWidth">宽度</span><span class="paper-dimension-input"><input id="paper-width" type="number" min="64" max="4096" step="1" value="1200" required autofocus><span>px</span></span></label>
+      <label for="paper-height"><span data-i18n="paperHeight">高度</span><span class="paper-dimension-input"><input id="paper-height" type="number" min="64" max="4096" step="1" value="800" required><span>px</span></span></label>
+    </div>
+    <footer class="paper-size-actions"><button id="paper-size-cancel" type="button" data-i18n="cancel">取消</button><button class="paper-size-apply" type="submit" data-i18n="apply">应用</button></footer>
+  </form>
+</dialog>

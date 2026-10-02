@@ -1,8 +1,9 @@
-import { WatercolorSimulation } from "../../shared/watercolor-simulation.js";
 import { createConfig, applyParameters, DEFAULTS, PAPER } from "./config.js";
 import { ColorPicker, hexToChannels, rgbToHex } from "./color-picker.js";
 import { BrushStroke, hexToRgb, paperExit } from "./stroke.js";
 import { t } from "./i18n.js";
+import { initPalette } from "./palette.js";
+import { PaperModel } from "./paper.js";
 
 const $ = (id) => document.getElementById(id);
 const app = $("watercolor-app");
@@ -16,9 +17,11 @@ const simulationCanvas = document.createElement("canvas");
 simulationCanvas.width = PAPER.gridWidth;
 simulationCanvas.height = PAPER.gridHeight;
 const simulationContext = simulationCanvas.getContext("2d");
-const imageData = simulationContext.createImageData(PAPER.gridWidth, PAPER.gridHeight);
+let imageData = simulationContext.createImageData(PAPER.gridWidth, PAPER.gridHeight);
 
 let simulation;
+let paperModel;
+let dimensions = { ...PAPER };
 let tool = "paint";
 let pointerId = null;
 let stroke = null;
@@ -27,6 +30,7 @@ let evolving = false;
 let dirty = true;
 let lastFrame = 0;
 let exportURL = null;
+let palette = null;
 const colorPicker = new ColorPicker($("color-plane"), $("hue"), controls.color, selectColor);
 
 function reportError(key) {
@@ -67,10 +71,11 @@ function refreshControls() {
   }
   applyParameters(config, controls);
   refreshCursorSize();
+  palette?.refreshSettings();
 }
 
 function refreshCursorSize() {
-  const size = controls.size * paper.getBoundingClientRect().width / PAPER.width;
+  const size = controls.size * paper.getBoundingClientRect().width / dimensions.width;
   cursor.style.width = `${size}px`;
   cursor.style.height = `${size}px`;
 }
@@ -81,11 +86,16 @@ function setTool(value) {
   $("water-tool").setAttribute("aria-pressed", String(tool === "water"));
   $("pigment").disabled = tool === "water";
   app.classList.toggle("is-water", tool === "water");
+  palette?.refreshSettings();
 }
 
 function updateActionButtons() {
   const drawing = pointerId !== null;
   for (const id of ["dry", "discard", "save", "pause"]) $(id).disabled = drawing || !simulation;
+  const blank = paperModel?.isBlank;
+  $("paper-size").disabled = drawing || !blank;
+  $("paper-size").title = t(blank ? "paperSize" : "paperSizeLocked");
+  palette?.refreshAvailability();
 }
 
 function fitPaper() {
@@ -93,9 +103,9 @@ function fitPaper() {
   const style = getComputedStyle(area);
   const width = area.clientWidth - parseFloat(style.paddingLeft) - parseFloat(style.paddingRight);
   const height = area.clientHeight - parseFloat(style.paddingTop) - parseFloat(style.paddingBottom);
-  const scale = Math.max(0.01, Math.min(width / PAPER.width, height / PAPER.height));
-  paper.style.width = `${PAPER.width * scale}px`;
-  paper.style.height = `${PAPER.height * scale}px`;
+  const scale = Math.max(0.01, Math.min(width / dimensions.width, height / dimensions.height));
+  paper.style.width = `${dimensions.width * scale}px`;
+  paper.style.height = `${dimensions.height * scale}px`;
   refreshCursorSize();
 }
 
@@ -112,9 +122,9 @@ function draw() {
 
 function eventPoint(event, allowOutside = false) {
   const rect = canvas.getBoundingClientRect();
-  const x = (event.clientX - rect.left) / rect.width * PAPER.gridWidth;
-  const y = (event.clientY - rect.top) / rect.height * PAPER.gridHeight;
-  if (!allowOutside && (x < 0 || x > PAPER.gridWidth || y < 0 || y > PAPER.gridHeight)) return null;
+  const x = (event.clientX - rect.left) / rect.width * dimensions.gridWidth;
+  const y = (event.clientY - rect.top) / rect.height * dimensions.gridHeight;
+  if (!allowOutside && (x < 0 || x > dimensions.gridWidth || y < 0 || y > dimensions.gridHeight)) return null;
   return {
     x, y,
     pressure: event.pointerType === "pen"
@@ -131,7 +141,7 @@ function updateCursor(event) {
 
 function beginStroke(point) {
   return new BrushStroke(simulation, {
-    radius: controls.size / 2 * PAPER.gridWidth / PAPER.width,
+    radius: controls.size / 2 * dimensions.gridWidth / dimensions.width,
     color: hexToRgb(controls.color),
     pigment: tool === "water" ? 0 : controls.pigment / 100 * 1.6,
     water: tool === "water" ? Math.max(0.2, controls.water / 100 * 1.8) : controls.water / 100 * 1.8,
@@ -141,7 +151,7 @@ function beginStroke(point) {
 function paintEvent(event) {
   const point = eventPoint(event);
   if (!point) {
-    if (stroke) stroke.move(paperExit(stroke.previous, eventPoint(event, true), PAPER.gridWidth, PAPER.gridHeight));
+    if (stroke) stroke.move(paperExit(stroke.previous, eventPoint(event, true), dimensions.gridWidth, dimensions.gridHeight));
     stroke?.finish();
     stroke = null;
   } else if (stroke) {
@@ -208,6 +218,7 @@ function togglePause() {
 document.addEventListener("watercolor-languagechange", () => {
   $("pause").textContent = t(paused ? "resume" : "pause");
   colorPicker.paint();
+  updateActionButtons();
 });
 $("pause").addEventListener("click", togglePause);
 $("dry").addEventListener("click", () => {
@@ -221,6 +232,38 @@ $("discard").addEventListener("click", () => {
   evolving = false;
   dirty = true;
   updateActionButtons();
+});
+
+$("paper-size").addEventListener("click", () => {
+  if (pointerId !== null || !paperModel?.isBlank) return;
+  $("paper-width").value = dimensions.width;
+  $("paper-height").value = dimensions.height;
+  $("paper-size-dialog").showModal();
+});
+for (const id of ["paper-size-close", "paper-size-cancel"]) $(id).addEventListener("click", () => $("paper-size-dialog").close());
+$("paper-size-form").addEventListener("submit", (event) => {
+  event.preventDefault();
+  if (pointerId !== null || !paperModel?.isBlank) return;
+  const width = Number($("paper-width").value);
+  const height = Number($("paper-height").value);
+  if (width === dimensions.width && height === dimensions.height) { $("paper-size-dialog").close(); return; }
+  if (!paperModel.resize(width, height)) return;
+  dimensions = paperModel.dimensions;
+  simulation = paperModel.simulation;
+  canvas.width = dimensions.width;
+  canvas.height = dimensions.height;
+  simulationCanvas.width = dimensions.gridWidth;
+  simulationCanvas.height = dimensions.gridHeight;
+  imageData = simulationContext.createImageData(dimensions.gridWidth, dimensions.gridHeight);
+  $("paper-dimensions").textContent = `${dimensions.width} × ${dimensions.height}`;
+  evolving = false;
+  if (exportURL) { URL.revokeObjectURL(exportURL); exportURL = null; }
+  $("export-link").hidden = true;
+  palette?.clearSwatch();
+  fitPaper();
+  draw();
+  updateActionButtons();
+  $("paper-size-dialog").close();
 });
 
 $("save").addEventListener("click", () => {
@@ -269,7 +312,7 @@ $("reset-settings").addEventListener("click", () => {
 });
 
 document.addEventListener("keydown", (event) => {
-  if (event.target.closest("input, textarea, select, summary") || pointerId !== null || !simulation) return;
+  if (event.target.closest("input, textarea, select, summary") || document.querySelector("dialog[open]") || pointerId !== null || !simulation) return;
   const modifier = event.ctrlKey || event.metaKey;
   const key = event.key.toLowerCase();
   if (modifier && key === "s") {
@@ -296,15 +339,25 @@ function animate(now) {
       dirty = true;
     }
     if (dirty) draw();
+    palette?.tick(elapsed / 16.667, paused);
   }
   requestAnimationFrame(animate);
 }
 
 try {
-  // Blank, gently humid paper: no portrait mask or memorial text.
-  const wetness = new Float32Array(PAPER.gridWidth * PAPER.gridHeight).fill(0.06);
-  const retention = new Float32Array(wetness.length);
-  simulation = new WatercolorSimulation(PAPER.gridWidth, PAPER.gridHeight, wetness, retention, config);
+  paperModel = new PaperModel(config);
+  simulation = paperModel.simulation;
+  palette = initPalette({
+    getSettings: () => ({ ...controls, tool }),
+    applySettings: (settings) => {
+      if (pointerId !== null) return false;
+      for (const key of Object.keys(DEFAULTS)) controls[key] = settings[key];
+      setTool(settings.tool);
+      refreshControls();
+      return true;
+    },
+    isDrawing: () => pointerId !== null,
+  });
   refreshControls();
   fitPaper();
   new ResizeObserver(fitPaper).observe($("paper-area"));
