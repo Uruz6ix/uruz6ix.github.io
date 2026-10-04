@@ -3,6 +3,8 @@
 const clamp = (value, minimum, maximum) =>
   Math.min(maximum, Math.max(minimum, value));
 
+const FRAY_TRAIL = [[0.34, 0.20], [0.62, 0.25], [0.88, 0.28], [1.00, 0.17]];
+
 const STATE_FIELDS = [
   "water", "flowX", "flowY",
   ...["mobile", "fixed", "rim", "sediment", "text"].flatMap(
@@ -272,9 +274,12 @@ export class WatercolorSimulation {
     this.flowY = new Float32Array(this.size);
 
     this.paper = new Float32Array(this.size);
+    this.microTrap = new Float32Array(this.size);
     this.capillaryX = new Float32Array(this.size);
     this.capillaryY = new Float32Array(this.size);
     this.capillaryStrength = new Float32Array(this.size);
+    this.capillaryRight = new Float32Array(this.size);
+    this.capillaryDown = new Float32Array(this.size);
 
     this.frayDeltaA = new Float32Array(this.size);
     this.frayDeltaR = new Float32Array(this.size);
@@ -348,6 +353,11 @@ export class WatercolorSimulation {
   for (let index = 0; index < this.size; index += 1) {
     const x = index % this.width;
     const y = Math.floor(index / this.width);
+
+    // Cache independent microstructure instead of sampling noise every frame.
+    this.microTrap[index] =
+      this.#smoothNoise(x, y, 2.2, 101, -47) * 0.68 +
+      this.#smoothNoise(x, y, 5.0, -71, 83) * 0.32;
 
     const fine = this.#smoothNoise(
       x,
@@ -425,6 +435,19 @@ export class WatercolorSimulation {
         1
       );
   }
+  // Shared edge conductance gives equal/opposite capillary flux to both cells.
+  // Sampling only the richer side used to create pigment and amplify paper patches.
+  for (let i = 0; i < this.size; i += 1) {
+    const right = i % this.width < this.width - 1 ? i + 1 : i;
+    const down = i + this.width < this.size ? i + this.width : i;
+    this.capillaryRight[i] = right === i ? 0 : 0.5 * (
+      this.capillaryStrength[i] * (0.25 + 0.75 * this.capillaryX[i] ** 2) +
+      this.capillaryStrength[right] * (0.25 + 0.75 * this.capillaryX[right] ** 2));
+    this.capillaryDown[i] = down === i ? 0 : 0.5 * (
+      this.capillaryStrength[i] * (0.25 + 0.75 * this.capillaryY[i] ** 2) +
+      this.capillaryStrength[down] * (0.25 + 0.75 * this.capillaryY[down] ** 2));
+  }
+
 }
 
   #initializeWater() {
@@ -569,7 +592,7 @@ export class WatercolorSimulation {
         const texture =
           1 +
           this.config.interaction.dropTextureStrength *
-            (this.paper[index] - 0.5);
+            (this.microTrap[index] - 0.5);
 
         const falloff = Math.max(
           0,
@@ -914,9 +937,7 @@ setTextLayer(imageData, color, opacity = 0.24) {
     const carriedAlpha =
       movedAlpha * carryStrength;
 const grainShare =
-  this.paper[index] > 0.58
-    ? 0.22
-    : 0.05;
+  0.05 + this.microTrap[index] * 0.17;
 
 const grainAlpha =
   carriedAlpha * grainShare;
@@ -1078,130 +1099,41 @@ this.sedimentB[index] +=
           diffusionMix;
 
 
-const capillaryStrength =
-  this.capillaryStrength[index];
-
-if (
-  capillaryStrength > 0.18 &&
-  wetness > 0.08
-) {
-  const fiberDistance =
-    0.9 +
-    capillaryStrength * 2.2;
-
-  const fiberX =
-    this.capillaryX[index] *
-    fiberDistance;
-
-  const fiberY =
-    this.capillaryY[index] *
-    fiberDistance;
-
-  const positiveAlpha = bilinear(
-    this.mobileA,
-    width,
-    height,
-    x + fiberX,
-    y + fiberY
-  );
-
-  const negativeAlpha = bilinear(
-    this.mobileA,
-    width,
-    height,
-    x - fiberX,
-    y - fiberY
-  );
-
-  const usePositive =
-    positiveAlpha >= negativeAlpha;
-
-  const sampledAlpha =
-    usePositive
-      ? positiveAlpha
-      : negativeAlpha;
-
-  if (sampledAlpha > alpha) {
-    const sourceX =
-      usePositive
-        ? x + fiberX
-        : x - fiberX;
-
-    const sourceY =
-      usePositive
-        ? y + fiberY
-        : y - fiberY;
-
-    const capillaryGain = Math.min(
-      (
-        sampledAlpha -
-        alpha
-      ) *
-        (
-          this.config.simulation.capillaryDiffusion ??
-          0.075
-        ) *
-        capillaryStrength *
-        wetness *
-        dt,
-      sampledAlpha * 0.065
-    );
-
-    if (capillaryGain > 0.000001) {
-      const sampledRed = bilinear(
-        this.mobileR,
-        width,
-        height,
-        sourceX,
-        sourceY
-      );
-
-      const sampledGreen = bilinear(
-        this.mobileG,
-        width,
-        height,
-        sourceX,
-        sourceY
-      );
-
-      const sampledBlue = bilinear(
-        this.mobileB,
-        width,
-        height,
-        sourceX,
-        sourceY
-      );
-
-      const inverseSampledAlpha =
-        1 /
-        Math.max(
-          sampledAlpha,
-          0.000001
-        );
-
-      alpha += capillaryGain;
-
-      red +=
-        capillaryGain *
-        sampledRed *
-        inverseSampledAlpha;
-
-      green +=
-        capillaryGain *
-        sampledGreen *
-        inverseSampledAlpha;
-
-      blue +=
-        capillaryGain *
-        sampledBlue *
-        inverseSampledAlpha;
-    }
-  }
-}
+        const capillaryRate = (this.config.simulation.capillaryDiffusion ?? 0.075) * dt;
+        if (capillaryRate > 0 && wetness > 0) {
+          for (let direction = 0; direction < 4; direction += 1) {
+            let neighbor, conductance;
+            if (direction === 0) {
+              if (x === 0) continue;
+              neighbor = index - 1;
+              conductance = this.capillaryRight[neighbor];
+            } else if (direction === 1) {
+              if (x === width - 1) continue;
+              neighbor = index + 1;
+              conductance = this.capillaryRight[index];
+            } else if (direction === 2) {
+              if (y === 0) continue;
+              neighbor = index - width;
+              conductance = this.capillaryDown[neighbor];
+            } else {
+              if (y === height - 1) continue;
+              neighbor = index + width;
+              conductance = this.capillaryDown[index];
+            }
+            const sharedWetness = Math.min(wetness, this.water[neighbor] /
+              this.config.simulation.wetnessReference);
+            // Four neighbors total <= 0.24, leaving room for box diffusion (<= 0.72).
+            const mix = clamp(capillaryRate * conductance * sharedWetness, 0, 0.06);
+            alpha += (this.mobileA[neighbor] - this.mobileA[index]) * mix;
+            red += (this.mobileR[neighbor] - this.mobileR[index]) * mix;
+            green += (this.mobileG[neighbor] - this.mobileG[index]) * mix;
+            blue += (this.mobileB[neighbor] - this.mobileB[index]) * mix;
+          }
+        }
 
         const flowX = this.flowX[index];
         const flowY = this.flowY[index];
-        const flowMagnitude = Math.hypot(flowX, flowY);
+        const flowMagnitude = flowX === 0 && flowY === 0 ? 0 : Math.hypot(flowX, flowY);
 
         if (flowMagnitude > 0.001) {
           const sampleDistance =
@@ -1313,21 +1245,13 @@ if (
   const tx = clampedX - x0;
   const ty = clampedY - y0;
 
-  const weights = [
-    [(1 - tx) * (1 - ty), y0 * this.width + x0],
-    [tx * (1 - ty), y0 * this.width + x1],
-    [(1 - tx) * ty, y1 * this.width + x0],
-    [tx * ty, y1 * this.width + x1],
-  ];
-
-  for (const [weight, index] of weights) {
-    if (weight <= 0) {
-      continue;
-    }
-
-    const weightedAlpha = alpha * weight;
-
-    this.frayDeltaA[index] += weightedAlpha;
+  // Four scalar writes avoid allocating nested arrays for every fiber sample.
+  for (let corner = 0; corner < 4; corner += 1) {
+    const right = corner & 1;
+    const bottom = corner & 2;
+    const weight = (right ? tx : 1 - tx) * (bottom ? ty : 1 - ty);
+    const index = (bottom ? y1 : y0) * this.width + (right ? x1 : x0);
+    this.frayDeltaA[index] += alpha * weight;
     this.frayDeltaR[index] += red * weight;
     this.frayDeltaG[index] += green * weight;
     this.frayDeltaB[index] += blue * weight;
@@ -1551,14 +1475,7 @@ if (
       this.frayDeltaB[index] -=
         movedAlpha * colorBlue;
 
-      const trail = [
-        [0.34, 0.20],
-        [0.62, 0.25],
-        [0.88, 0.28],
-        [1.00, 0.17],
-      ];
-
-      for (const [position, weight] of trail) {
+      for (const [position, weight] of FRAY_TRAIL) {
         const depositedAlpha =
           movedAlpha * weight;
 
@@ -1727,22 +1644,10 @@ if (
         1
       );
 
-      const paperTrap = clamp(
-        this.paper[index] * 0.58 +
-          this.capillaryStrength[index] * 0.42,
-        0,
-        1
-      );
-
-      const sparseGate = smoothstep(
-        0.48,
-        0.82,
-        paperTrap
-      );
-
-      if (sparseGate <= 0.0001) {
-        continue;
-      }
+      // Continuous modulation avoids large allowed/blocked sediment islands.
+      const microTrap = this.microTrap[index];
+      const paperFactor = 1 + (this.paper[index] - 0.5) * 0.16;
+      const trapFactor = 0.82 + microTrap * 0.36;
 
       const wetness = clamp(
         this.nextWater[index] /
@@ -1774,13 +1679,14 @@ if (
       const settleRate =
         (
           baseRate +
-          paperRate * paperTrap +
+          paperRate * microTrap +
           edgeRate * particleContrast
         ) *
         dispersedBand *
-        sparseGate *
         wetnessWindow *
-        humidityFactor;
+        humidityFactor *
+        paperFactor *
+        trapFactor;
 
       const movedAlpha = Math.min(
         mobileAlpha *
@@ -1844,7 +1750,7 @@ if (
       }
 
       const retention = this.retention[index];
-      const paper = this.paper[index];
+      const paper = 0.5 + (this.microTrap[index] - 0.5) * 0.8;
 
       const stainCapacity =
         this.config.simulation.backgroundRetentionCapacity +
@@ -1988,7 +1894,49 @@ if (
   }
 
 
+// On plain paper, immobilization changes location, not the pigment's optical identity.
+// Mix premultiplied pigment once, then tone once instead of toning four layers.
+#renderWashToImageData(imageData) {
+  const pixels = imageData.data;
+  const render = this.config.render;
+  const densityScale = render.pigmentDensity;
+  for (let i = 0, p = 0; i < this.size; i += 1, p += 4) {
+    const mobile = this.mobileA[i] * render.mobilePigmentWeight;
+    const fixed = this.fixedA[i] * render.fixedPigmentWeight;
+    const sediment = this.sedimentA[i] * render.sedimentPigmentWeight;
+    const rim = this.rimA[i] * render.rimPigmentWeight;
+    const mass = mobile + fixed + sediment + rim;
+    if (mass <= 0.0001) {
+      pixels[p] = pixels[p + 1] = pixels[p + 2] = pixels[p + 3] = 0;
+      continue;
+    }
+    const inverseMass = 1 / mass;
+    const red = clamp((this.mobileR[i] * render.mobilePigmentWeight +
+      this.fixedR[i] * render.fixedPigmentWeight +
+      this.sedimentR[i] * render.sedimentPigmentWeight +
+      this.rimR[i] * render.rimPigmentWeight) * inverseMass, 0, 1);
+    const green = clamp((this.mobileG[i] * render.mobilePigmentWeight +
+      this.fixedG[i] * render.fixedPigmentWeight +
+      this.sedimentG[i] * render.sedimentPigmentWeight +
+      this.rimG[i] * render.rimPigmentWeight) * inverseMass, 0, 1);
+    const blue = clamp((this.mobileB[i] * render.mobilePigmentWeight +
+      this.fixedB[i] * render.fixedPigmentWeight +
+      this.sedimentB[i] * render.sedimentPigmentWeight +
+      this.rimB[i] * render.rimPigmentWeight) * inverseMass, 0, 1);
+    const density = 1 - Math.exp(-mass * densityScale * 2.9);
+    const color = tonePigment(this.config, red, green, blue, density, rim * inverseMass * 0.78);
+    const grain = 1 + render.granulationStrength * (this.microTrap[i] - 0.5);
+    pixels[p] = color.red * 255;
+    pixels[p + 1] = color.green * 255;
+    pixels[p + 2] = color.blue * 255;
+    pixels[p + 3] = clamp((1 - Math.exp(-mass * densityScale * 0.86)) *
+      render.watercolorOpacity * grain * 255, 0, 255);
+  }
+  return imageData;
+}
+
 renderToImageData(imageData) {
+    if (this.config.render.unifiedPigment) return this.#renderWashToImageData(imageData);
     const pixels = imageData.data;
 
     const mobileWeight =
@@ -2575,7 +2523,7 @@ addLayer(
       const granulation =
         1 +
         this.config.render.granulationStrength *
-          (this.paper[index] - 0.5);
+          (this.microTrap[index] - 0.5);
 
       pixels[pixelIndex] = clamp(
         finalRed * 255,

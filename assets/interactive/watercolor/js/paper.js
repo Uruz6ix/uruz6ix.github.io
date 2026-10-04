@@ -7,7 +7,7 @@ const PIGMENT_FIELDS = ["mobileA", "fixedA", "rimA", "sedimentA", "textA"];
 export function paperDimensions(width, height) {
   if (![width, height].every((value) => Number.isInteger(value) && value >= PAPER_SIZE_LIMITS.min && value <= PAPER_SIZE_LIMITS.max)) return null;
   // Match the original sampling density, while keeping large papers affordable.
-  const scale = Math.min(PAPER.gridWidth / PAPER.width, Math.sqrt(PAPER.gridWidth * PAPER.gridHeight / (width * height)));
+  const scale = Math.min(PAPER.gridWidth / PAPER.width, Math.sqrt(PAPER.gridWidth * PAPER.gridHeight / (width * height)), PAPER.gridWidth / Math.max(width, height));
   return { width, height, gridWidth: Math.round(width * scale), gridHeight: Math.round(height * scale) };
 }
 

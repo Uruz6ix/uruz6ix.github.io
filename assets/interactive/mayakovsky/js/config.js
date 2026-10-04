@@ -1,7 +1,7 @@
 export const CONFIG = {
   defaultMaskPath: "../assets/mayakovsky-mask.png",
 
-  maxSimulationSide: 440,
+  maxSimulationSide: 512,
 
   performance: {
     updateEveryFrames: 2,
@@ -62,12 +62,12 @@ export const CONFIG = {
 
     settleMinimumAlpha: 0.0025,
     settlePeakAlpha: 0.035,
-    settleMaximumAlpha: 0.46,
+    settleMaximumAlpha: 0.16,
 
     settleBaseRate: 0.003,
-    settlePaperRate: 0.012,
-    settleEdgeRate: 0.018,
-    settleMaximumShare: 0.02,
+    settlePaperRate: 0.004,
+    settleEdgeRate: 0.020,
+    settleMaximumShare: 0.012,
     settleCapacity: 0.06,
 
     maxWater: 2.2,
@@ -108,7 +108,7 @@ export const CONFIG = {
     mobilePigmentWeight: 0.98,
     fixedPigmentWeight: 1.72,
     rimPigmentWeight: 1.18,
-    sedimentPigmentWeight: 0.72,
+    sedimentPigmentWeight: 0.95,
 
     pigmentDensity: 0.72,
     granulationStrength: 0.035,
@@ -119,7 +119,7 @@ export const CONFIG = {
     edgeSaturationBoost: 0.1,
     edgeLightnessDrop: 0.12,
 
-    sedimentLightnessLift: 0.12,
+    sedimentLightnessLift: 0.00,
 
     maskDensityCap: 0.46,
     maskOpacityBoost: 2.55,
